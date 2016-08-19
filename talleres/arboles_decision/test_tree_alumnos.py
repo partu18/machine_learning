@@ -1,5 +1,5 @@
 from tree_aa_alumnos import *
-import pylab
+import matplotlib.pylab as pylab
 
 # Armamos dataset tennis 
 X=np.array([["Sol","Calor","Alta","Debil"],

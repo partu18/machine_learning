@@ -1,6 +1,6 @@
 import numpy as np
 from collections import Counter
-import pylab
+import matplotlib.pylab as pylab
 
 
 
