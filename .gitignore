@@ -1,3 +1,4 @@
 ml_venv
 .DS_STORE
 *.pyc
+*.json*
