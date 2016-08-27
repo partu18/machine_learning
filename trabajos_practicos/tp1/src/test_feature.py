@@ -19,8 +19,8 @@ def parse_files(spam_filename, ham_filename):
 
 
 if __name__ == "__main__":
-    spam_filename = 'spam_txt.json'
-    ham_filename = 'ham_txt.json'
+    spam_filename = '../data/spam_txt.json'
+    ham_filename = '../data/ham_txt.json'
 
     spam_emails, ham_emails = parse_files(spam_filename, ham_filename)
     sc = StatisticsGenerator(spam_emails, ham_emails)
