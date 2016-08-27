@@ -1,6 +1,4 @@
 import email
-import json
-
 
 class SpamClasifier(object):
     def __init__(self, spam_emails, ham_emails):
@@ -9,8 +7,6 @@ class SpamClasifier(object):
 
         self.spam = spam_emails
         self.ham = ham_emails
-
-
 
     def print_stats(self, positive_spam, positive_ham, function_name):
         print "Function used: {}".format(function_name) 
@@ -61,29 +57,3 @@ class SpamClasifier(object):
                     res_for_type.append([{msg.get_content_type(): msg.get_payload()}])
             res.append((res_for_type, non_parseable_emails))
         return {self.SPAM:res[0], self.HAM:res[1]}
-
-
-def has_html(email):
-    return 'html' in email
-
-def parse_files(spam_filename, ham_filename):
-    with open(spam_filename,'r') as f:
-        spam_json = f.read()
-
-    with open(ham_filename,'r') as f:
-        ham_json = f.read()
-
-    return json.loads(spam_json), json.loads(ham_json) 
-
-
-
-if __name__ == "__main__":
-    spam_filename = 'spam_txt.json'
-    ham_filename = 'ham_txt.json'
-
-    spam_emails, ham_emails = parse_files(spam_filename, ham_filename)
-    sc = SpamClasifier(spam_emails, ham_emails)
-
-    # res = sc.get_emails_by_ctype_to_payload()
-
-    sc.get_stats_for_fn(has_html)
