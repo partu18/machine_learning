@@ -1,15 +1,40 @@
 import email
 import json
+from HTMLParser import HTMLParser
+from collections import defaultdict
+
+# create a subclass and override the handler methods
+class EmailHTMLParser(HTMLParser):
+
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.data = defaultdict(lambda: 0,{})
+        self.actual_tag = ''
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.replace('=','')
+        self.actual_tag = tag
+        if tag != 'body':
+            self.data[tag] += 1
+
+    def handle_data(self, content):
+        if self.actual_tag == 'body':
+            self.data['body'] = content
 
 
-class SpamClasifier(object):
+# class DataExtractor(object):
+
+#     def __init__(self, spam_emails, ham_emails):
+         # use parser to build a matrix with each value
+
+
+class StatisticsGenerator(object):
     def __init__(self, spam_emails, ham_emails):
         self.SPAM = 'spam'
         self.HAM = 'ham'
 
         self.spam = spam_emails
         self.ham = ham_emails
-
 
 
     def print_stats(self, positive_spam, positive_ham, function_name):
@@ -24,6 +49,7 @@ class SpamClasifier(object):
         print "Amount of positive ham emails: {}".format(positive_ham)
         print "Amount of negative ham emails: {}".format(len(self.ham) - positive_ham)
         print "Percentaje of positives: {}".format( float(positive_ham) / len(self.ham))
+
 
     def get_stats_for_fn(self,function):
         """
@@ -63,6 +89,9 @@ class SpamClasifier(object):
         return {self.SPAM:res[0], self.HAM:res[1]}
 
 
+def clean_string(string):
+    return string.replace("\r","").replace("\n","").strip()
+
 def has_html(email):
     return 'html' in email
 
@@ -73,8 +102,7 @@ def parse_files(spam_filename, ham_filename):
     with open(ham_filename,'r') as f:
         ham_json = f.read()
 
-    return json.loads(spam_json), json.loads(ham_json) 
-
+    return json.loads(clean_string(spam_json)), json.loads(clean_string(ham_json))
 
 
 if __name__ == "__main__":
@@ -82,8 +110,14 @@ if __name__ == "__main__":
     ham_filename = 'ham_txt.json'
 
     spam_emails, ham_emails = parse_files(spam_filename, ham_filename)
-    sc = SpamClasifier(spam_emails, ham_emails)
+    sg = StatisticsGenerator(spam_emails, ham_emails)
 
-    # res = sc.get_emails_by_ctype_to_payload()
+    res = sg.get_emails_by_ctype_to_payload()
 
-    sc.get_stats_for_fn(has_html)
+    parser = EmailHTMLParser()
+
+    txt = res['spam'][0][0][0]['text/html']
+
+    parser.feed(clean_string(txt))
+
+    #sg.get_stats_for_fn(has_html)
