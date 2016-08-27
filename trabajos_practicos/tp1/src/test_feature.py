@@ -28,17 +28,17 @@ if __name__ == "__main__":
 
     res = sc.get_emails_by_ctype_to_payload()
 
-    spam_html_features = []
-    parsed_emails = res['spam'][0]
+    ham_html_features = []
+    parsed_emails = res['ham'][0]
     # Calculo la aparicion global de las etiquetas HTML en spam
-    #summarization = Counter()
+    summarization = Counter()
     for mail in parsed_emails:
         parser = EmailHTMLParser()
         if mail.has_key('text/html'):
             for html in mail['text/html']:
                 parser.feed(clean_string(html))
-        #summarization += Counter(parser.data)
-        spam_html_features.append(parser.data)
+        summarization += Counter(parser.data)
+        ham_html_features.append(parser.data)
 
 
 
