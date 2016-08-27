@@ -14,9 +14,9 @@ class EmailHTMLParser(HTMLParser):
         if tag != 'body':
             self.data[tag] += 1
 
-    def handle_data(self, content):
-        if self.actual_tag == 'body':
-            self.data['body'] = content
+    # def handle_data(self, content):
+    #     if self.actual_tag == 'body':
+    #         self.data['body'] = content
 
 
 # class DataExtractor(object):

@@ -1,4 +1,6 @@
 import email
+from collections import defaultdict
+
 class StatisticsGenerator(object):
     def __init__(self, spam_emails, ham_emails):
         self.SPAM = 'spam'
@@ -19,6 +21,10 @@ class StatisticsGenerator(object):
         print "Amount of positive ham emails: {}".format(positive_ham)
         print "Amount of negative ham emails: {}".format(len(self.ham) - positive_ham)
         print "Percentaje of positives: {}".format( float(positive_ham) / len(self.ham))
+
+
+    #def get_html_features_for(mails):
+
 
 
     def get_stats_for_fn(self,function):
@@ -49,11 +55,11 @@ class StatisticsGenerator(object):
                     non_parseable_emails.append(i)
                     continue
                 if msg.is_multipart():
-                    mini_res = []
+                    mini_res = defaultdict(lambda:[], {})
                     for payload in msg.get_payload():
-                        mini_res.append({payload.get_content_type(): payload.get_payload()})
+                        mini_res[payload.get_content_type()].append(payload.get_payload())
                     res_for_type.append(mini_res)
                 else:
-                    res_for_type.append([{msg.get_content_type(): msg.get_payload()}])
+                    res_for_type.append({msg.get_content_type():[msg.get_payload()]})
             res.append((res_for_type, non_parseable_emails))
         return {self.SPAM:res[0], self.HAM:res[1]}

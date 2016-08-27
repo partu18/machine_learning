@@ -2,6 +2,7 @@ import json
 from features import *
 from statisticsGenerator import StatisticsGenerator
 from emailHTMLParser import EmailHTMLParser
+from collections import Counter
 
 def clean_string(string):
     return string.replace("\r","").replace("\n","").strip()
@@ -25,11 +26,20 @@ if __name__ == "__main__":
     spam_emails, ham_emails = parse_files(spam_filename, ham_filename)
     sc = StatisticsGenerator(spam_emails, ham_emails)
 
-    # res = sc.get_emails_by_ctype_to_payload()
+    res = sc.get_emails_by_ctype_to_payload()
 
-    sc.get_stats_for_fn(has_more_than_10_to)
+    spam_html_features = []
+    parsed_emails = res['spam'][0]
+    # Calculo la aparicion global de las etiquetas HTML en spam
+    #summarization = Counter()
+    for mail in parsed_emails:
+        parser = EmailHTMLParser()
+        if mail.has_key('text/html'):
+            for html in mail['text/html']:
+                parser.feed(clean_string(html))
+        #summarization += Counter(parser.data)
+        spam_html_features.append(parser.data)
 
 
-    parser = EmailHTMLParser()
-    txt = res['spam'][0][0][0]['text/html']
-    parser.feed(clean_string(txt))
+
+    #sc.get_stats_for_fn(has_more_than_10_to)
