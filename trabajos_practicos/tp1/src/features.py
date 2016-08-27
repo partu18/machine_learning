@@ -26,5 +26,3 @@ def has_more_than_10_to(mail):
     except KeyError:
         return False
 
-
-def 
