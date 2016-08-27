@@ -1,2 +1,3 @@
 ml_venv
-*pyc
+.DS_STORE
+*.pyc
