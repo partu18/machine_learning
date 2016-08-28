@@ -67,9 +67,10 @@ if __name__ == "__main__":
     from sklearn.feature_extraction.text import CountVectorizer
     count_vect = CountVectorizer(stop_words='english')
     Y = count_vect.fit_transform(spam_text_data)
-    frequencies_dict = dict(zip(count_vect.get_feature_names(), Y))
-    new_freq = {k: v.sum() for k, v in frequencies_dict.iteritems() }
-    sorted_freq = sorted(new_freq.items(), key=operator.itemgetter(1))
+    sum0 = Y.sum(0).A[0]
+    frequencies_dict = {k:sum0[v] for k,v in count_vect.vocabulary_.iteritems()}
+    sorted_freq = sorted(frequencies_dict.items(), key=operator.itemgetter(1))
+    sorted_freq.reverse()
 
 
     ## Calculo de la frecuencia de palabras en los ham
@@ -91,9 +92,9 @@ if __name__ == "__main__":
 
     # Usando el CountVectorizer -> Parece que no estamo asociando bien [palabra,conteo]
     from sklearn.feature_extraction.text import CountVectorizer
-    count_vect = CountVectorizer(max_df=20000,stop_words='english')
+    count_vect = CountVectorizer(stop_words='english')
     Y = count_vect.fit_transform(ham_text_data)
-    frequencies_dict = dict(zip(count_vect.get_feature_names(), Y)) ## Esto parece que no asocia bien palabra con conteo
-    new_freq = {k: v.sum() for k, v in frequencies_dict.iteritems() } 
-    sorted_freq = sorted(new_freq.items(), key=operator.itemgetter(1))
+    sum0 = Y.sum(0).A[0]
+    frequencies_dict = {k:sum0[v] for k,v in count_vect.vocabulary_.iteritems()}
+    sorted_freq = sorted(frequencies_dict.items(), key=operator.itemgetter(1))
     sorted_freq.reverse()
