@@ -26,6 +26,9 @@ class StatisticsGenerator(object):
     #def get_html_features_for(mails):
 
 
+    def find_ngrams(txt, n):
+        words = txt.split(' ')
+        return zip(*[words[i:] for i in range(n)])
 
     def get_stats_for_fn(self,function):
         """
