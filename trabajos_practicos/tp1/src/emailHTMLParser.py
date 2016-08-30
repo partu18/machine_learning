@@ -6,21 +6,27 @@ class EmailHTMLParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
         self.data = defaultdict(lambda: 0,{})
-        self.actual_tag = ''
+        self.inside_body = False
 
     def handle_starttag(self, tag, attrs):
-        tag = tag.replace('=','')
-        self.actual_tag = tag
-        if tag != 'body':
+        #tag = tag.replace('=','')
+        if not tag.startswith('body'):
             self.data[tag] += 1
+        else:
+            self.inside_body = True
 
-    # def handle_data(self, content):
-    #     if self.actual_tag == 'body':
-    #         self.data['body'] = content
+    def handle_data(self, content):
+        if self.inside_body:
+            if self.data.has_key('body'):
+                self.data['body'] += content
+            else:
+                self.data['body'] = content            
 
+    def handle_endtag(self,tag):
+        if tag.startswith('body'):
+            self.inside_body = False
 
-# class DataExtractor(object):
-
-#     def __init__(self, spam_emails, ham_emails):
-         # use parser to build a matrix with each value
-
+    def feed(self, data):
+        self.data = defaultdict(lambda: 0,{})
+        self.inside_body = False
+        HTMLParser.feed(self,data)

@@ -7,7 +7,7 @@ from collections import Counter
 import operator
 
 def clean_string(string):
-    return string.replace("\r","").replace("\n","").strip()
+    return string.replace("\r","").replace("\n","").replace("\t","  ").strip()
 
 
 def parse_files(spam_filename, ham_filename):
