@@ -1,6 +1,5 @@
 import email
 from collections import defaultdict
-
 class StatisticsGenerator(object):
     def __init__(self, spam_emails, ham_emails):
         self.SPAM = 'spam'
@@ -22,13 +21,6 @@ class StatisticsGenerator(object):
         print "Amount of negative ham emails: {}".format(len(self.ham) - positive_ham)
         print "Percentaje of positives: {}".format( float(positive_ham) / len(self.ham))
 
-
-    #def get_html_features_for(mails):
-
-
-    def find_ngrams(txt, n):
-        words = txt.split(' ')
-        return zip(*[words[i:] for i in range(n)])
 
     def get_stats_for_fn(self,function):
         """
