@@ -1,4 +1,4 @@
 ml_venv
 .DS_STORE
 *.pyc
-trabajos_practicos/tp1/data/*.json
+trabajos_practicos/tp1/data/*
