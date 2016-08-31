@@ -1,0 +1,20 @@
+TODO:
+
+- [X] Pasar esto a github
+- [Gaby] Ver lematizacion 
+- [Gaby] Ver ngramas -> probar sin stopwords 
+- [Gaby] En caso de llegar a usar los tags html, ver de hacer list exhaustiva de los tags de html y poner los que sean prefijos del tag candidato
+- [X] Arreglar el problema de las frecuencias de scikit learn con la bolsa de palabras
+- [X] Analizar los diferentes content types que estabamos dejando colgados 
+	Nota: yo ya cambie la funcion que usaba para parsear con mime los mails para que me deje un hash con content_types como key y como value la lista de payloads de ese tipo, sin distinguir por mail. Para que sea mas claro que dá ejecutenlo y miren
+
+- [X] Revisar el Excel para ver que features que dijimos estamos dejando afuera
+
+YO (gaby) cortaria aca, y en caso de que falten features:
+
+	- [X] Ver el tema de extraer nouns y eso del paper de lao
+
+
+
+
+

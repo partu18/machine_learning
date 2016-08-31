@@ -10,7 +10,7 @@ class EmailHTMLParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         #tag = tag.replace('=','')
-        if not tag.startswith('body'):
+        if not tag.startswith('body'): #FIXME: ver si es prefijo de una etiqueta valida
             self.data[tag] += 1
         else:
             self.inside_body = True

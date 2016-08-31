@@ -41,20 +41,13 @@ class StatisticsGenerator(object):
         emails = [self.spam, self.ham]
         res = []
         for emails_of_type in emails:
-            res_for_type = []
-            non_parseable_emails = []
+            res_for_type = defaultdict(lambda:[],{})
             for i in xrange(len(emails_of_type)):
-                try:
-                    msg = email.message_from_string(emails_of_type[i])
-                except UnicodeEncodeError:
-                    non_parseable_emails.append(i)
-                    continue
+                msg = email.message_from_string(emails_of_type[i].encode('ascii','ignore'))
                 if msg.is_multipart():
-                    mini_res = defaultdict(lambda:[], {})
                     for payload in msg.get_payload():
-                        mini_res[payload.get_content_type()].append(payload.get_payload())
-                    res_for_type.append(mini_res)
+                        res_for_type[payload.get_content_type()].append(payload.get_payload())
                 else:
-                    res_for_type.append({msg.get_content_type():[msg.get_payload()]})
-            res.append((res_for_type, non_parseable_emails))
+                    res_for_type[msg.get_content_type()].append(msg.get_payload())
+            res.append(res_for_type)
         return {self.SPAM:res[0], self.HAM:res[1]}

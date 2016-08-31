@@ -1,6 +1,7 @@
 from collections import Counter
 import json
 from statisticsGenerator import StatisticsGenerator
+from nltk.corpus import stopwords
 
 def clean_string(string):
     return string.replace("\r","").replace("\n","").strip()
@@ -16,12 +17,14 @@ def parse_files(spam_filename, ham_filename):
 
 
 
-def find_ngrams(txt, n):
-    blacklist = ['\t','\n','>','<']
+def find_ngrams(txt, n, remove_stopwords=False):
+    blacklist = ['\t','\n','>','<','*','!','?']
     for item in blacklist:
         txt = txt.replace(item,'')
     txt = ' '.join(txt.split()) #para sacarle los multiples espacios
     words = txt.split(' ')
+    if(remove_stopwords)
+        words = list(set(words) - set(stopwords.words('english')))
     return zip(*[words[i:] for i in range(n)])
 
 

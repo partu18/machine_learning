@@ -3,7 +3,8 @@ from features import *
 from statisticsGenerator import StatisticsGenerator
 from emailHTMLParser import EmailHTMLParser
 from collections import Counter
-#from nltk.corpus import stopwords
+import numpy as np
+from nltk.corpus import stopwords
 import operator
 
 def clean_string(string):
@@ -32,6 +33,9 @@ if __name__ == "__main__":
     parsed_spams = res['spam'][0]
     parsed_hams = res['ham'][0]
 
+
+    stop_words = stopwords.words('english')
+
     #sc.get_stats_for_fn(has_more_than_10_to)
 
     ## Calculo de frecuencia de tags de html
@@ -47,15 +51,15 @@ if __name__ == "__main__":
 
 
     ## Calculo de la frecuencia de palabras en los spam
-    spam_text_data = []
-    for mail in parsed_spams:
-        if mail.has_key('text/plain'):
-            spam_text_data += mail['text/plain']
+    # spam_text_data = []
+    # for mail in parsed_spams:
+    #     if mail.has_key('text/plain'):
+    #         spam_text_data += mail['text/plain']
     
     ## Usando TfidfVectorizer -> Muchas frecuencias repetidas, muy raro
     from sklearn.feature_extraction.text import TfidfVectorizer
-    vectorizer = TfidfVectorizer(max_df=0.6, stop_words='english')
-    X = vectorizer.fit_transform(spam_text_data)
+    vectorizer = TfidfVectorizer(min_df=0.6, stop_words=stop_words)
+    X = vectorizer.fit_transform(parsed_spams['text/plain'])
     idf = vectorizer.idf_
     frequencies_dict = dict(zip(vectorizer.get_feature_names(), idf))
     values = frequencies_dict.values()
@@ -65,8 +69,8 @@ if __name__ == "__main__":
     
     # Usando el CountVectorizer -> Parece que no estamo asociando bien [palabra,conteo]
     from sklearn.feature_extraction.text import CountVectorizer
-    count_vect = CountVectorizer(stop_words='english')
-    Y = count_vect.fit_transform(spam_text_data)
+    count_vect = CountVectorizer(stop_words=stop_words)
+    Y = count_vect.fit_transform(parsed_spams['text/plain'])
     sum0 = Y.sum(0).A[0]
     frequencies_dict = {k:sum0[v] for k,v in count_vect.vocabulary_.iteritems()}
     sorted_freq = sorted(frequencies_dict.items(), key=operator.itemgetter(1))
@@ -74,15 +78,15 @@ if __name__ == "__main__":
 
 
     ## Calculo de la frecuencia de palabras en los ham
-    ham_text_data = []
-    for mail in parsed_hams:
-        if mail.has_key('text/plain'):
-            ham_text_data += mail['text/plain']
+    # ham_text_data = []
+    # for mail in parsed_hams:
+    #     if mail.has_key('text/plain'):
+    #         ham_text_data += mail['text/plain']
 
     ## Usando TfidfVectorizer -> Muchas frecuencias repetidas, muy raro
     from sklearn.feature_extraction.text import TfidfVectorizer
-    vectorizer = TfidfVectorizer(max_df=0.6, stop_words='english') 
-    X = vectorizer.fit_transform(ham_text_data)
+    vectorizer = TfidfVectorizer(min_df=0.6, stop_words=stop_words) 
+    X = vectorizer.fit_transform(parsed_hams['text/plain'])
     idf = vectorizer.idf_
     frequencies_dict = dict(zip(vectorizer.get_feature_names(), idf)) 
     values = frequencies_dict.values()
@@ -92,8 +96,8 @@ if __name__ == "__main__":
 
     # Usando el CountVectorizer -> Parece que no estamo asociando bien [palabra,conteo]
     from sklearn.feature_extraction.text import CountVectorizer
-    count_vect = CountVectorizer(stop_words='english')
-    Y = count_vect.fit_transform(ham_text_data)
+    count_vect = CountVectorizer(stop_words=stop_words)
+    Y = count_vect.fit_transform(parsed_hams['text/plain'])
     sum0 = Y.sum(0).A[0]
     frequencies_dict = {k:sum0[v] for k,v in count_vect.vocabulary_.iteritems()}
     sorted_freq = sorted(frequencies_dict.items(), key=operator.itemgetter(1))
