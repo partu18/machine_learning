@@ -46,8 +46,13 @@ class StatisticsGenerator(object):
                 msg = email.message_from_string(emails_of_type[i].encode('ascii','ignore'))
                 if msg.is_multipart():
                     for payload in msg.get_payload():
-                        res_for_type[payload.get_content_type()].append(payload.get_payload())
+                        content_type = self.text_to_content_type(payload.get_content_type())
+                        res_for_type[content_type].append(payload.get_payload())
                 else:
-                    res_for_type[msg.get_content_type()].append(msg.get_payload())
+                    content_type = self.text_to_content_type(msg.get_content_type())
+                    res_for_type[content_type].append(msg.get_payload())
             res.append(res_for_type)
         return {self.SPAM:res[0], self.HAM:res[1]}
+
+    def text_to_content_type(self,txt):
+        return txt.replace("\n"," ").replace("\r"," ").split(' ')[0]

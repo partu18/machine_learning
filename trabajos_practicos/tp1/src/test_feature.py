@@ -30,8 +30,8 @@ if __name__ == "__main__":
 
     res = sc.get_emails_by_ctype_to_payload()
     
-    parsed_spams = res['spam'][0]
-    parsed_hams = res['ham'][0]
+    parsed_spams = res['spam']
+    parsed_hams = res['ham']
 
 
     stop_words = stopwords.words('english')
