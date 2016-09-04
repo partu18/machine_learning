@@ -28,13 +28,20 @@ class StatisticsGenerator(object):
             Function must be a function that returns either True (positive) or False (negative)
         """
         positive_spam = 0
+        fucked_emails = []
         for mail in self.spam:
-            positive_spam += 1 if function(mail) else 0
-
+            try:
+                positive_spam += 1 if function(mail) else 0
+            except Exception:  
+                fucked_emails.append(self.spam.index(mail))
         positive_ham = 0
         for mail in self.ham:
-            positive_ham += 1 if function(mail) else 0
+            try:
+                positive_ham += 1 if function(mail) else 0
+            except Exception: 
+                fucked_emails.append(self.ham.index(mail))
 
+        print "Fucked emails {}".format(len(fucked_emails))
         self.print_stats(positive_spam,positive_ham, function.func_name)
 
     def get_emails_by_ctype_to_payload(self):
