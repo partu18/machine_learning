@@ -1,47 +1,23 @@
 import json
-import email
-import pandas as pd
-
-def clean_string(string):
-    return string.replace("\r","").replace("\n","").strip()
-
-
-def parse_files(spam_filename, ham_filename):
-    with open(spam_filename,'r') as f:
-        spam_json = f.read()
-
-    with open(ham_filename,'r') as f:
-        ham_json = f.read()
-
-    return json.loads(clean_string(spam_json)), json.loads(clean_string(ham_json))
+from common_functions import *
+from statisticsGenerator import StatisticsGenerator
 
 def is_replay(msg):
-    try:
-        info = dict(email.message_from_string(msg).items())
-        return 're:' in info['subject']
-    except UnicodeError:
-        #Cannot be decoded
-        return False
-    except KeyError:
-        return False
+    return 're:' in msg['subject']
 
 def has_javamail(msg):
-    try:
-        info = dict(email.message_from_string(msg).items())
-        return 'javamail' in info['message-id']
-    except UnicodeError:
-        #Cannot be decoded
-        return False
-    except KeyError:
-        return False
+    return 'javamail' in info['message-id']
 
-ham_emails = json.load(open('../data/ham_train.json'))
-spam_emails = json.load(open('../data/spam_train.json'))
+if __name__ == "__main__":
+    spam_filename = '../data/spam_train.json'
+    ham_filename = '../data/ham_train.json'
 
-df = pd.DataFrame(ham_emails+spam_emails, columns=['text'])
-df['class'] = ['ham' for _ in range(len(ham_emails))]+['spam' for _ in range(len(spam_emails))]
+    spam_emails, ham_emails = parse_files(spam_filename, ham_filename)
+    sc = StatisticsGenerator(spam_emails, ham_emails)
 
-# desde aca es solo codigo para contar repeticiones y ver si tenian sentido las features
-df['je'] = [has_javamail(r[1]['text']) for r in df.iterrows()]
+    emails = sc.get_emails_by_ctype_to_payload()
 
-print len(df[df['class'] == 'spam'][df['je'] == True]), len(df[df['class'] == 'ham'][df['je'] == True])
+    ham_emails = emails['ham'][0]
+    spam_emails = emails['spam'][0]
+
+    print len([1 for e in ham_emails if has_javamail(e)])
