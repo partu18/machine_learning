@@ -16,8 +16,6 @@ def parse_files(spam_filename, ham_filename):
     return json.loads(clean_string(spam_json)), json.loads(clean_string(ham_json))
 
 
-
-
 def find_ngrams(txt, n, remove_stopwords=False):
     blacklist = ['\t','\n','>','<','*','!','?']
     for item in blacklist:
@@ -38,15 +36,21 @@ def get_top_k_ngrams(emails_body, n, k):
            n_gram_counter[n_gram] += 1
     return n_gram_counter.most_common(k)
 
-
-def get_top_k_ngrams_freqs(emails_body, n, k):
+def get_top_k_ngrams(emails_body, n, k):
     #body_emails must be in plaint text
-    n_gram_counter = n_gram_counter()
+    ft_idf_dict = dict()
+    n_gram_list = []
     for email_body in emails_body:
         n_grams = find_ngrams(email_body, n)
+        email_index = emails_body.index(emails_body)
+        ft_idf_dit[email_index] = dict()
         for n_gram in n_grams:
-           n_gram_counter[n_gram] += 1
-    return n_gram_counter.most_common(k)
+            n_gram_index = len(n_gram_list)
+            n_gram_list.append(n_gram)
+            if not(n_gram_index in ft_idf_dict[email_index].keys()):
+                ft_idf_dict[email_index][n_gram_index] = ft_idf(n_gram,email_body,emails_body)
+    
+    return n_gram_list, ft_idf_dict
 
 def idf(t,D):
     n = len(t)
@@ -55,9 +59,9 @@ def idf(t,D):
     return log( total_documents / (0.1 + documents_with_t))
 
 def ft(t,d):
-    ngrams = find_ngrams(d, len(t))
-    total_ngrams = float(len(ngrams))
-    total_ts = float(len(filter(lambda x: x == t, ngrams)))
+    n_grams = find_ngrams(d, len(t))
+    total_ngrams = float(len(n_grams))
+    total_ts = float(len(filter(lambda x: x == t, n_grams)))
     return  total_ts / total_ngrams
 
 # toma un termino t (ngram), un documento d, la lista de todos los documentos D y calcula el ft-idf del ngram
