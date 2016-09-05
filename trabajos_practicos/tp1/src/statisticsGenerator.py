@@ -1,5 +1,6 @@
 import email
 from collections import defaultdict
+
 class StatisticsGenerator(object):
     def __init__(self, spam_emails, ham_emails):
         self.SPAM = 'spam'
@@ -27,14 +28,20 @@ class StatisticsGenerator(object):
             Function must be a function that returns either True (positive) or False (negative)
         """
         positive_spam = 0
+        fucked_emails = []
         for mail in self.spam:
-            positive_spam += 1 if function(mail) else 0
-
+            try:
+                positive_spam += 1 if function(mail) else 0
+            except Exception:  
+                fucked_emails.append(self.spam.index(mail))
         positive_ham = 0
         for mail in self.ham:
-            positive_ham += 1 if function(mail) else 0
+            try:
+                positive_ham += 1 if function(mail) else 0
+            except Exception: 
+                fucked_emails.append(self.ham.index(mail))
 
-
+        print "Fucked emails {}".format(len(fucked_emails))
         self.print_stats(positive_spam,positive_ham, function.func_name)
 
     def get_emails_by_ctype_to_payload(self):
@@ -44,13 +51,22 @@ class StatisticsGenerator(object):
             res_for_type = defaultdict(lambda:[],{})
             for i in xrange(len(emails_of_type)):
                 msg = email.message_from_string(emails_of_type[i].encode('ascii','ignore'))
-                if msg.is_multipart():
-                    for payload in msg.get_payload():
-                        content_type = self.text_to_content_type(payload.get_content_type())
-                        res_for_type[content_type].append(payload.get_payload())
+                payload = msg.get_payload()
+                contents = []
+                if isinstance(payload,list):
+                    while len(payload) > 0:
+                        part = payload.pop(0)
+                        content = part.get_payload()
+                        if isinstance(content,list):
+                            payload = payload + content
+                        else:
+                            contents.append((self.text_to_content_type(part.get_content_type()),part.get_payload()))
                 else:
-                    content_type = self.text_to_content_type(msg.get_content_type())
-                    res_for_type[content_type].append(msg.get_payload())
+                    contents.append((self.text_to_content_type(msg.get_content_type()),payload))
+
+                for content in contents:
+                    res_for_type[content[0]].append(content[1])
+
             res.append(res_for_type)
         return {self.SPAM:res[0], self.HAM:res[1]}
 
