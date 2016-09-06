@@ -18,18 +18,9 @@ def get_idf_dict(emails, min_df=1, ngram_range=(1,1), stop_words='english'):
     idf = vectorizer.idf_
     return dict(zip(vectorizer.get_feature_names(), idf))
 
-def get_value(d, k):
-    return d[k] if k in d.keys() else float("inf") # todo: check the correct value for this
-
-def combine_idfs(d1,d2):
-    return {k: (get_value(d1,k),get_value(d2,k)) for k in set(d1.keys() + d2.keys())}
-
-def compare_key(v1):
-    return abs(v1[1][0]-v1[1][1])
-
 def get_top_k_idf(spam_emails, ham_emails, k, min_df=1, n=1, stop_words='english'):
     ngram_range = (n,n)
-    
+
     # obtaining the spam terms idf
     spam_idf_dict = get_idf_dict(spam_emails, min_df=min_df, ngram_range=ngram_range, stop_words=stop_words)
 
@@ -43,16 +34,8 @@ def get_top_k_idf(spam_emails, ham_emails, k, min_df=1, n=1, stop_words='english
     ham_lower_perc = np.percentile(ham_idf_dict.values(),100)
     ham_filtered_upper = {k: v for k, v in ham_idf_dict.iteritems() if v >= ham_upper_perc}
     ham_filtered_lower = {k: v for k, v in ham_idf_dict.iteritems() if v <= ham_lower_perc}
-    # joining dicts
-    lower_spam_upper_ham = combine_idfs(spam_filtered_lower, ham_filtered_upper)
-    lower_ham_upper_spam = combine_idfs(ham_filtered_lower, spam_filtered_upper)
-    # sorting
-    start_lsuh = max(len(lower_spam_upper_ham)-k,0)
-    start_lhus = max(len(lower_ham_upper_spam)-k,0)
-    top_k_lsuh = dict(sorted(lower_spam_upper_ham.iteritems(), key=compare_key)[start_lsuh:])
-    top_k_lhus = dict(sorted(lower_ham_upper_spam.iteritems(), key=compare_key)[start_lhus:])
 
-    return top_k_lsuh, top_k_lhus
+    return spam_filtered_upper, spam_filtered_lower, ham_filtered_upper, ham_filtered_lower
 
 # Ejemplo del get_top_k_idf
 # spam_emails = ['house dog cake', 'house dog cat', 'house user car']
@@ -81,3 +64,9 @@ def get_top_k_idf(spam_emails, ham_emails, k, min_df=1, n=1, stop_words='english
 #       u'house':   (inf, 1.0),
 #       u'user':    (1.6931471805599454, 1.6931471805599454),
 #       u'yellow':  (1.0, inf)}
+
+
+
+
+
+

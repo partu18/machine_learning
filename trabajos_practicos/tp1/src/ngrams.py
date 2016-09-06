@@ -1,6 +1,5 @@
 from collections import Counter
 import json
-from statisticsGenerator import StatisticsGenerator
 from nltk.corpus import stopwords
 from math import log
 
@@ -16,7 +15,7 @@ def parse_files(spam_filename, ham_filename):
     return json.loads(clean_string(spam_json)), json.loads(clean_string(ham_json))
 
 
-def find_ngrams(txt, n, remove_stopwords=False):
+def find_ngrams(txt, n, remove_stopwords=False, separator=None):
     blacklist = ['\t','\n','>','<','*','!','?']
     for item in blacklist:
         txt = txt.replace(item,'')
@@ -24,55 +23,64 @@ def find_ngrams(txt, n, remove_stopwords=False):
     words = txt.split(' ')
     if remove_stopwords:
         words = list(set(words) - set(stopwords.words('english')))
-    return zip(*[words[i:] for i in range(n)])
+    ngrams = zip(*[words[i:] for i in range(n)])
+    if separator != None:
+        ngrams = [ng for ng in ngrams if not(separator in ng)]
+    return [' '.join(n) for n in ngrams]
 
-
-def get_top_k_ngrams(emails_body, n, k):
+def get_top_k_ngrams_count(emails_body, n, k, separator=None):
     #body_emails must be in plaint text
     n_gram_counter = n_gram_counter()
     for email_body in emails_body:
-        n_grams = find_ngrams(email_body, n)
-        for n_gram in n_grams:
-           n_gram_counter[n_gram] += 1
+        n_grams = find_ngrams(email_body,n,separator=separator)
+        for ng in n_grams:
+           n_gram_counter[ng] += 1
     return n_gram_counter.most_common(k)
 
-def get_top_k_ngrams(emails_body, n, k):
+def get_top_percentile_ngrams_idf(emails_body, k, n=1, percentile=75, separator=None):
     #body_emails must be in plaint text
-    ft_idf_dict = dict()
-    n_gram_list = []
-    for email_body in emails_body:
-        n_grams = find_ngrams(email_body, n)
-        email_index = emails_body.index(emails_body)
-        ft_idf_dit[email_index] = dict()
-        for n_gram in n_grams:
-            n_gram_index = len(n_gram_list)
-            n_gram_list.append(n_gram)
-            if not(n_gram_index in ft_idf_dict[email_index].keys()):
-                ft_idf_dict[email_index][n_gram_index] = ft_idf(n_gram,email_body,emails_body)
-    
-    return n_gram_list, ft_idf_dict
+    idfs = dict()
+    n_grams = list(set([ng for ng in find_ngrams(e,n,separator=separator) for e in emails_body]))
+    idfs = {ng: idf(ng,emails_body,separator=separator) for ng in n_grams}
+    perc = np.percentile(idfs.values(), percentile)
+    return {k: v for k, v in idfs.items() if v >= perc}
 
-def idf(t,D):
+def get_bottom_percentile_ngrams_idf(emails_body, k, n=1, percentile=75, separator=None):
+    #body_emails must be in plaint text
+    idfs = dict()
+    n_grams = list(set([ng for ng in find_ngrams(e,n,separator=separator) for e in emails_body]))
+    idfs = {ng: idf(ng,emails_body,separator=separator) for ng in n_grams}
+    perc = np.percentile(idfs.values(), percentile)
+    return {k: v for k, v in idfs.items() if v <= perc}
+
+def get_top_percentile_different_count_ngrams(spam_emails, ham_emails, percentile=75, n=1, separator=None):
+    spam_ngrams = [ng for ng in find_ngrams(e,n,separator=separator) for e in spam_emails]
+    spam_counter = {k: spam_ngrams.count(k) for k in set(spam_ngrams)}
+
+    ham_ngrams = [ng for ng in find_ngrams(e,n,separator=separator) for e in ham_emails]
+    ham_counter = {k: ham_ngrams.count(k) for k in set(ham_ngrams)}
+
+    ngram_counter = {k: (spam_counter[k] if k in spam_ngrams else 0, ham_counter[k] if k in ham_ngrams else 0) for k in list(set(spam_ngrams+ham_ngrams))}
+    normalized_ngrams = {k, (v[0]/(v[0]+v[1]), v[1]/(v[0]+v[1])) for k, v in ngram_counter.items()}
+    perc = np.percentile([abs(0.5-v[1]) for v in normalized_ngrams.values()], percentile)
+    return {k, v for k, v in normalized_ngrams if abs(0.5-v[1]) >= percentile}
+
+
+def idf(t,D,separator=None):
+    # t must be in string, not array of strings
     n = len(t)
-    total_documents = float(len(D))
-    documents_with_t = float(len(filter(lambda x: t in find_ngrams(x, n), D)))
-    return log( total_documents / (0.1 + documents_with_t))
+    D_t = [d for d in D if t in find_ngrams(d,n,separator=separator)]
+    D_size = float(len(D))
+    D_t_size = float(len(D_t))
+    return log( D_size / (1 + D_t_size))
 
-def ft(t,d):
-    n_grams = find_ngrams(d, len(t))
+def ft(t,d,separator=None):
+    # t and d must be in strings, not arrays of strings
+    n_grams = find_ngrams(d, len(t),separator=separator)
     total_ngrams = float(len(n_grams))
-    total_ts = float(len(filter(lambda x: x == t, n_grams)))
-    return  total_ts / total_ngrams
+    t_count = float(len([1 for n in n_grams if n == t]))
+    return  t_count / total_ngrams
 
-# toma un termino t (ngram), un documento d, la lista de todos los documentos D y calcula el ft-idf del ngram
-# ejemplo: 
-# t = ('a','b','c')
-# d = 'a b c d e f g'
-# D = ['a b c a b c','a b c d','d e f g t']
-# ft_idf(t,d,D) -> 0.07133498878774648
-# ya que la cantidad de apariciones de t en d es 1 y la cantidad de 3-grams en t son 5, la cantidad de documentos en D que contienen a t son 2
-# por lo tanto ft_idf = ft * idf = 1/5 * log(3/(0.1+2))
-# el termino 0.1 es para no dividir por 0 cuando el termino no esta en D.
 def ft_idf(t,d,D):
     return ft(t,d)*idf(t,D)
 
@@ -84,19 +92,10 @@ if __name__ == "__main__":
     spam_emails, ham_emails = parse_files(spam_filename, ham_filename)
     sc = StatisticsGenerator(spam_emails, ham_emails)
 
-
     n = 3
     your_mommy = sc.get_emails_by_ctype_to_payload()
-
 
     ham_emails = your_mommy['ham'][0]
     spam_emails = your_mommy['spam'][0]
 
     plain_text_emails = [mail['text/plain'][0] for mail in ham_emails if 'text/plain' in mail.keys()]
-    # plain_text_emails +=  [mail['text/plain'][0] for mail in spam_emails if 'text/plain' in mail.keys()]
-
-    print get_top_k_ngrams(plain_text_emails, 3, 10)
-
-
-
-
