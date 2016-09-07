@@ -42,9 +42,13 @@ def get_top_k_ngrams_count(emails_body, k, n=1, separator=None):
 def get_top_percentile_ngrams_idf(emails_body, n=1, percentile=75, separator=None):
     #body_emails must be in plaint text
     idfs = dict()
-    n_grams = [find_ngrams(e,n,separator=separator) for e in emails_body]
-    n_grams = list(set([ng for ngs in n_grams for ng in ngs]))
-    idfs = {ng: idf(ng,emails_body,separator=separator) for ng in n_grams}
+    print "paso1"
+    emails_as_ngrams = np.array([find_ngrams(e,n,separator=separator) for e in emails_body])
+    print "paso2"
+    n_grams = list(set([ng for ngs in emails_as_ngrams for ng in ngs]))
+    print "paso3"
+    idfs = {ng: idf(ng,emails_as_ngrams,separator=separator) for ng in n_grams}
+    print "paso4"
     perc = np.percentile(idfs.values(), percentile)
     return {k: v for k, v in idfs.items() if v >= perc}
 
@@ -69,15 +73,20 @@ def get_top_percentile_different_count_ngrams(spam_emails, ham_emails, percentil
     ngram_counter = {k: (spam_counter[k] if k in spam_ngrams else 0, ham_counter[k] if k in ham_ngrams else 0) for k in list(set(spam_ngrams+ham_ngrams))}
     normalized_ngrams = {k: (v[0]/(v[0]+v[1]), v[1]/(v[0]+v[1])) for k, v in ngram_counter.items()}
     perc = np.percentile([abs(0.5-v[1]) for v in normalized_ngrams.values()], percentile)
-    return {k: v for k, v in normalized_ngrams.items() if abs(0.5-v[1]) >= percentile}
+    return {k: v for k, v in normalized_ngrams.items() if abs(0.5-v[1]) >= perc}
 
 
-def idf(t,D,separator=None):
+def idf(t,emails_as_ngrams,separator=None):
     # t must be in string, not array of strings
-    n = len(t.split(' '))
-    D_t = [d for d in D if t in find_ngrams(d,n,separator=separator)]
-    D_size = float(len(D))
-    D_t_size = float(len(D_t))
+    print 'entro'
+    #MAP REDUCE!!!!!!!!!!!!!!!
+    D_t = len(filter(lambda x: t in x, emails_as_ngrams)) #[1 for d in emails_as_ngrams if t in d])
+    print 'idf 2'
+    # D_size = float(len(emails_as_ngrams))
+    D_size = float(emails_as_ngrams.size)
+    print 'idf 3'
+    # D_t_size = float(len(D_t))
+    D_t_size = float(D_t)
     return log( D_size / (1 + D_t_size))
 
 def ft(t,d,separator=None):
@@ -85,7 +94,7 @@ def ft(t,d,separator=None):
     n = len(t.split(' '))
     n_grams = find_ngrams(d, n, separator=separator)
     total_ngrams = float(len(n_grams))
-    t_count = float(len([1 for n in n_grams if n == t]))
+    t_count = float(len([1 for _ in n_grams if n == t]))
     return  t_count / total_ngrams
 
 def ft_idf(t,d,D):
