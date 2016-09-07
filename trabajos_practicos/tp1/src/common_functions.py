@@ -1,6 +1,8 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
-import numpy as np
+from collections import defaultdict
 import json
+import email as email_parser
+from emailHTMLParser import EmailHTMLParser
+from text_tokenizer import *
 
 def clean_string(string):
     return string.replace("\r","").replace("\n","").strip()
@@ -12,61 +14,64 @@ def parse_files(spam_filename, ham_filename):
         ham_json = f.read()
     return json.loads(clean_string(spam_json)), json.loads(clean_string(ham_json))
 
-def get_idf_dict(emails, min_df=1, ngram_range=(1,1), stop_words='english'):
-    vectorizer = TfidfVectorizer(min_df=min_df, ngram_range=ngram_range, stop_words=stop_words)
-    X = vectorizer.fit_transform(emails)
-    idf = vectorizer.idf_
-    return dict(zip(vectorizer.get_feature_names(), idf))
 
-def get_top_k_idf(spam_emails, ham_emails, k, min_df=1, n=1, stop_words='english'):
-    ngram_range = (n,n)
+def get_emails_by_ctype_to_payload(spam,ham):
+    emails = [spam, ham]
+    res = []
+    for emails_of_type in emails:
+        res_for_type = defaultdict(lambda:[],{})
+        for i in xrange(len(emails_of_type)):
+            msg = email_parser.message_from_string(emails_of_type[i].encode('ascii','ignore'))
+            payload = msg.get_payload()
+            contents = []
+            if isinstance(payload,list):
+                while len(payload) > 0:
+                    part = payload.pop(0)
+                    content = part.get_payload()
+                    if isinstance(content,list):
+                        payload = payload + content
+                    else:
+                        contents.append((text_to_content_type(part.get_content_type()),part.get_payload()))
+            else:
+                contents.append((text_to_content_type(msg.get_content_type()),payload))
 
-    # obtaining the spam terms idf
-    spam_idf_dict = get_idf_dict(spam_emails, min_df=min_df, ngram_range=ngram_range, stop_words=stop_words)
+            for content in contents:
+                res_for_type[content[0]].append(content[1])
 
-    spam_upper_perc = np.percentile(spam_idf_dict.values(),0)
-    spam_lower_perc = np.percentile(spam_idf_dict.values(),100)
-    spam_filtered_upper = {k: v for k, v in spam_idf_dict.iteritems() if v >= spam_upper_perc}
-    spam_filtered_lower = {k: v for k, v in spam_idf_dict.iteritems() if v <= spam_lower_perc}
-    # obtaining the ham terms idf
-    ham_idf_dict = get_idf_dict(ham_emails, min_df=min_df, ngram_range=ngram_range, stop_words=stop_words)
-    ham_upper_perc = np.percentile(ham_idf_dict.values(),0)
-    ham_lower_perc = np.percentile(ham_idf_dict.values(),100)
-    ham_filtered_upper = {k: v for k, v in ham_idf_dict.iteritems() if v >= ham_upper_perc}
-    ham_filtered_lower = {k: v for k, v in ham_idf_dict.iteritems() if v <= ham_lower_perc}
+        res.append(res_for_type)
+    return {'spam':res[0], 'ham':res[1]}
 
-    return spam_filtered_upper, spam_filtered_lower, ham_filtered_upper, ham_filtered_lower
+def text_to_content_type(txt):
+    return txt.replace("\n"," ").replace("\r"," ").split(' ')[0]
 
-# Ejemplo del get_top_k_idf
-# spam_emails = ['house dog cake', 'house dog cat', 'house user car']
-# ham_emails = ['yellow guitar bass', 'yellow guitar battery', 'yellow user car']
-# k = 15
-# a,b = get_top_k_idf(spam_email, ham_emails,k)
-# a = { u'bass':    (inf, 1.6931471805599454),
-#       u'battery': (inf, 1.6931471805599454),
-#       u'cake':    (1.6931471805599454, inf),
-#       u'car':     (1.6931471805599454, 1.6931471805599454),
-#       u'cat':     (1.6931471805599454, inf),
-#       u'dog':     (1.2876820724517808, inf),
-#       u'guitar':  (inf, 1.2876820724517808),
-#       u'house':   (1.0, inf),
-#       u'user':    (1.6931471805599454, 1.6931471805599454),
-#       u'yellow':  (inf, 1.0)}
-#
-#
-# b = { u'bass':    (1.6931471805599454, inf),
-#       u'battery': (1.6931471805599454, inf),
-#       u'cake':    (inf, 1.6931471805599454),
-#       u'car':     (1.6931471805599454, 1.6931471805599454),
-#       u'cat':     (inf, 1.6931471805599454),
-#       u'dog':     (inf, 1.2876820724517808),
-#       u'guitar':  (1.2876820724517808, inf),
-#       u'house':   (inf, 1.0),
-#       u'user':    (1.6931471805599454, 1.6931471805599454),
-#       u'yellow':  (1.0, inf)}
+def content_types_for_email(email):
+    msg = email_parser.message_from_string(email.encode('ascii','ignore'))
+    payload = msg.get_payload()
+    contents = []
+    content_type_dict = defaultdict(lambda:[],{})
+    if isinstance(payload,list):
+        while len(payload) > 0:
+            part = payload.pop(0)
+            content = part.get_payload()
+            if isinstance(content,list):
+                payload = payload + content
+            else:
+                contents.append((text_to_content_type(part.get_content_type()),part.get_payload()))
+    else:
+        contents.append((text_to_content_type(msg.get_content_type()),payload))
+    for content in contents:
+        content_type_dict[content[0]].append(content[1])
+    return content_type_dict
 
-
-
-
-
-
+def text_from_email(email, separator='partugabylao'):
+    contents = content_types_for_email(email)
+    text_plain = contents['text/plain']
+    html_content = contents['text/html']
+    parser = EmailHTMLParser()
+    html_text = []
+    for html in html_content:
+        parser.feed(html)
+        if parser.data['body'] != '':
+            html_text.append(parser.data['body'])
+    text = (' ' + separator + ' ').join(text_plain + html_text)
+    return ' '.join(tokenize(text))

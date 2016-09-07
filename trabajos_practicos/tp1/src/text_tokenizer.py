@@ -17,7 +17,7 @@ lematizer = WordNetLemmatizer()
 stop_words = stopwords.words('english')
 
 def tokenize(text):
-    tokens = nltk.word_tokenize(text)
+    tokens = word_tokenize(text)
     tokens = [i for i in tokens if i not in string.punctuation and i not in stop_words]
     lemmas = lemmatize_tokens(pos_tag(tokens), lematizer)
     return lemmas

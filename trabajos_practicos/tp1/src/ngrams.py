@@ -3,6 +3,7 @@ import json
 from nltk.corpus import stopwords
 from math import log
 import numpy as np
+import string
 
 def clean_string(string):
     return string.replace("\r","").replace("\n","").strip()
@@ -17,7 +18,7 @@ def parse_files(spam_filename, ham_filename):
 
 
 def find_ngrams(txt, n, remove_stopwords=False, separator=None):
-    blacklist = ['\t','\n','>','<','*','!','?']
+    blacklist = '\t\n' + string.punctuation
     for item in blacklist:
         txt = txt.replace(item,'')
     txt = ' '.join(txt.split()) #para sacarle los multiples espacios

@@ -27,6 +27,6 @@ class EmailHTMLParser(HTMLParser):
             self.inside_body = False
 
     def feed(self, data):
-        self.data = defaultdict(lambda: 0,{})
+        self.data = defaultdict(lambda: 0,{'body':''})
         self.inside_body = False
         HTMLParser.feed(self,data)
