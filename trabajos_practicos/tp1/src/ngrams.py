@@ -90,6 +90,13 @@ def ft(t,d,separator=None):
 def ft_idf(t,d,D):
     return ft(t,d)*idf(t,D)
 
+def get_top_percentile_idf_touples(spam_emails,ham_emails, n=1, percentile=75, separator=None):
+    idfs = dict()
+    n_grams = [find_ngrams(e,n,separator=separator) for e in spam_emails+ham_emails]
+    n_grams = list(set([ng for ngs in n_grams for ng in ngs]))
+    idfs = {ng: (idf(ng,spam_emails,separator=separator),idf(ng,ham_emails,separator=separator)) for ng in n_grams}
+    perc = np.percentile([abs(v[1]-v[0]) for v in idfs.values()], percentile)
+    return {k: v for k, v in idfs.items() if abs(v[1]-v[0]) >= perc}
 
 if __name__ == "__main__":
     spam_filename = '../data/spam_train.json'
