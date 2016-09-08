@@ -14,6 +14,7 @@ from nltk.corpus import stopwords
 ###############
 
 lematizer = WordNetLemmatizer()
+stemmer = PorterStemmer()
 stop_words = stopwords.words('english')
 
 def tokenize(text):
@@ -22,6 +23,8 @@ def tokenize(text):
     lemmas = lemmatize_tokens(pos_tag(tokens), lematizer)
     return lemmas
 
+def stem_tokens(tokens,stemmer):
+    return NotImplementedError('elegir un stemmer')
 
 def lemmatize_tokens(tagged_tokens, lematizer):
     lemmatized = []

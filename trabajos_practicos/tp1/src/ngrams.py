@@ -4,6 +4,8 @@ from nltk.corpus import stopwords
 from math import log
 import numpy as np
 import string
+import multiprocessing
+from functools import partial
 
 def clean_string(string):
     return string.replace("\r","").replace("\n","").strip()
@@ -42,13 +44,12 @@ def get_top_k_ngrams_count(emails_body, k, n=1, separator=None):
 def get_top_percentile_ngrams_idf(emails_body, n=1, percentile=75, separator=None):
     #body_emails must be in plaint text
     idfs = dict()
-    print "paso1"
     emails_as_ngrams = np.array([find_ngrams(e,n,separator=separator) for e in emails_body])
-    print "paso2"
     n_grams = list(set([ng for ngs in emails_as_ngrams for ng in ngs]))
-    print "paso3"
-    idfs = {ng: idf(ng,emails_as_ngrams,separator=separator) for ng in n_grams}
-    print "paso4"
+    pool = multiprocessing.Pool(6)
+    partial_idf = partial(idf,emails_as_ngrams=emails_as_ngrams,separator=separator)
+    idfs = pool.map(partial_idf,n_grams)
+    #idfs = {ng: idf(ng,emails_as_ngrams,separator=separator) for ng in n_grams}
     perc = np.percentile(idfs.values(), percentile)
     return {k: v for k, v in idfs.items() if v >= perc}
 
@@ -78,13 +79,10 @@ def get_top_percentile_different_count_ngrams(spam_emails, ham_emails, percentil
 
 def idf(t,emails_as_ngrams,separator=None):
     # t must be in string, not array of strings
-    print 'entro'
     #MAP REDUCE!!!!!!!!!!!!!!!
     D_t = len(filter(lambda x: t in x, emails_as_ngrams)) #[1 for d in emails_as_ngrams if t in d])
-    print 'idf 2'
     # D_size = float(len(emails_as_ngrams))
     D_size = float(emails_as_ngrams.size)
-    print 'idf 3'
     # D_t_size = float(len(D_t))
     D_t_size = float(D_t)
     return log( D_size / (1 + D_t_size))
