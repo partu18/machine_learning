@@ -45,9 +45,10 @@ def get_top_k_ngrams_count(emails_body, k, n=1, separator=None):
 # other_ngrams list allows to calculate idf for ngrams that doesn't appear in anny document
 def get_ngrams_idf(emails_body, n=1, other_ngrams=[], separator=None):
     tdfs = dict()
-    total = len(emails_body)
+    lenght = 0
     emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in emails_body]
     for e in emails_as_ngrams:
+        lenght += 1 # function len() iterates over the list, in order to minimize iterations, I manually obtain the lenth in the same ngrams process iteration.
         for ng in set(e):
             try:
                 tdfs[ng] += 1
@@ -57,7 +58,7 @@ def get_ngrams_idf(emails_body, n=1, other_ngrams=[], separator=None):
     for ng in other_ngrams:
         if not(tdfs.get(ng)):
             tdfs[ng] = 0
-    return {k: log(float(total)/float(1+v)) for k, v in tdfs.items()}
+    return {k: log(float(lenght)/float(1+v)) for k, v in tdfs.items()}
 
 def get_top_percentile_ngrams_idf(emails_body, n=1, percentile=75, separator=None):
     #body_emails must be in plaint text
