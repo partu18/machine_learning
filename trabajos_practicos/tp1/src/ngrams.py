@@ -28,7 +28,7 @@ def find_ngrams(txt, n, remove_stopwords=False, separator=None):
     ngrams = zip(*[words[i:] for i in range(n)])
     if separator != None:
         ngrams = [ng for ng in ngrams if not(separator in ng)]
-    return [' '.join(n) for n in ngrams]
+    return [' '.join(ngram) for ngram in ngrams]
 
 def get_top_k_ngrams_count(emails_body, k, n=1, separator=None):
     #body_emails must be in plaint text
@@ -107,18 +107,3 @@ def get_top_percentile_idf_touples(spam_emails,ham_emails, n=1, percentile=75, s
     idfs = {ng: (idf(ng,spam_emails,separator=separator),idf(ng,ham_emails,separator=separator)) for ng in n_grams}
     perc = np.percentile([abs(v[1]-v[0]) for v in idfs.values()], percentile)
     return {k: v for k, v in idfs.items() if abs(v[1]-v[0]) >= perc}
-
-if __name__ == "__main__":
-    spam_filename = '../data/spam_train.json'
-    ham_filename = '../data/ham_train.json'
-
-    spam_emails, ham_emails = parse_files(spam_filename, ham_filename)
-    sc = StatisticsGenerator(spam_emails, ham_emails)
-
-    n = 3
-    your_mommy = sc.get_emails_by_ctype_to_payload()
-
-    ham_emails = your_mommy['ham'][0]
-    spam_emails = your_mommy['spam'][0]
-
-    plain_text_emails = [mail['text/plain'][0] for mail in ham_emails if 'text/plain' in mail.keys()]

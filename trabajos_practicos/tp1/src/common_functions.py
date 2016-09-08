@@ -44,7 +44,7 @@ def get_emails_by_ctype_to_payload(spam,ham):
 def text_to_content_type(txt):
     return txt.replace("\n"," ").replace("\r"," ").split(' ')[0]
 
-def content_types_for_email(email):
+def content_types_in_email(email,in_dict=True):
     msg = email_parser.message_from_string(email.encode('ascii','ignore'))
     payload = msg.get_payload()
     contents = []
@@ -59,8 +59,13 @@ def content_types_for_email(email):
                 contents.append((text_to_content_type(part.get_content_type()),part.get_payload()))
     else:
         contents.append((text_to_content_type(msg.get_content_type()),payload))
+
+    if not in_dict:
+        return contents
+
     for content in contents:
         content_type_dict[content[0]].append(content[1])
+        
     return content_type_dict
 
 def text_from_email(email, separator='partugabylao'):
