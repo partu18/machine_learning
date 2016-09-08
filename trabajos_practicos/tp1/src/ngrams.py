@@ -41,6 +41,24 @@ def get_top_k_ngrams_count(emails_body, k, n=1, separator=None):
            n_gram_counter[ng] += 1
     return n_gram_counter.most_common(k)
 
+# tdf stands for term document frecuency which is the total of document from the document array that contains the term
+# other_ngrams list allows to calculate idf for ngrams that doesn't appear in anny document
+def get_ngrams_idf(emails_body, n=1, other_ngrams=[], separator=None):
+    tdfs = dict()
+    total = len(emails_body)
+    emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in emails_body]
+    for e in emails_as_ngrams:
+        for ng in set(e):
+            try:
+                tdfs[ng] += 1
+            except KeyError:
+                tdfs[ng] = 1;
+    # adding ngrams that doesn't appear in any document
+    for ng in other_ngrams:
+        if not(tdfs.get(ng)):
+            tdfs[ng] = 0
+    return {k: log(float(total)/float(1+v)) for k, v in tdfs.items()}
+
 def get_top_percentile_ngrams_idf(emails_body, n=1, percentile=75, separator=None):
     #body_emails must be in plaint text
     idfs = dict()
@@ -105,3 +123,5 @@ def get_top_percentile_idf_touples(spam_emails,ham_emails, n=1, percentile=75, s
     idfs = {ng: (idf(ng,spam_emails,separator=separator),idf(ng,ham_emails,separator=separator)) for ng in n_grams}
     perc = np.percentile([abs(v[1]-v[0]) for v in idfs.values()], percentile)
     return {k: v for k, v in idfs.items() if abs(v[1]-v[0]) >= perc}
+
+    #dommy example
