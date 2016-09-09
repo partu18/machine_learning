@@ -80,3 +80,28 @@ def text_from_email(email, separator='partugabylao'):
             html_text.append(parser.data['body'])
     text = (' ' + separator + ' ').join(text_plain + html_text)
     return ' '.join(tokenize(text))
+
+
+#### TODO: SI ESTO NO SE USA MOVERLO AL CARAJOOO
+
+def idf(term,emails_as_ngrams,separator=None):
+    # t must be in string, not array of strings
+    #MAP REDUCE!!!!!!!!!!!!!!!
+    D_t = len(filter(lambda x: term in x, emails_as_ngrams)) #[1 for d in emails_as_ngrams if t in d])
+    # D_size = float(len(emails_as_ngrams))
+    D_size = float(emails_as_ngrams.size)
+    # D_t_size = float(len(D_t))
+    D_t_size = float(D_t)
+    return log( D_size / (1 + D_t_size))
+
+def ft(t,d,separator=None):
+    # t and d must be in strings, not arrays of strings
+    n = len(t.split(' '))
+    n_grams = find_ngrams(d, n, separator=separator)
+    total_ngrams = float(len(n_grams))
+    t_count = float(len([1 for _ in n_grams if n == t]))
+    return  t_count / total_ngrams
+
+def ft_idf(t,d,D):
+    return ft(t,d)*idf(t,D)
+

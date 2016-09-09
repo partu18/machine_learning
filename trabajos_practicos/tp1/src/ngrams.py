@@ -4,8 +4,7 @@ from nltk.corpus import stopwords
 from math import log
 import numpy as np
 import string
-import multiprocessing
-from functools import partial
+from collections import defaultdict
 
 def clean_string(string):
     return string.replace("\r","").replace("\n","").strip()
@@ -32,52 +31,39 @@ def find_ngrams(txt, n, remove_stopwords=False, separator=None):
         ngrams = [ng for ng in ngrams if not(separator in ng)]
     return [' '.join(ngram) for ngram in ngrams]
 
-def get_top_k_ngrams_count(emails_body, k, n=1, separator=None):
-    #body_emails must be in plaint text
+def get_top_k_ngrams_count(lemmatized_emails, k, n=1, separator=None):
+    #body_emails must be in plain text
     n_gram_counter = Counter()
-    for email_body in emails_body:
+    for email_body in lemmatized_emails:
         n_grams = find_ngrams(email_body,n,separator=separator)
         for ng in n_grams:
            n_gram_counter[ng] += 1
     return n_gram_counter.most_common(k)
 
 # tdf stands for term document frecuency which is the total of document from the document array that contains the term
+# idf stands for inverse document frequency, defined as idf(t,D) = |D|/|{d in D where t in d}|
 # other_ngrams list allows to calculate idf for ngrams that doesn't appear in anny document
-def get_ngrams_idf(emails_body, n=1, other_ngrams=[], separator=None):
-    tdfs = dict()
-    lenght = 0
-    emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in emails_body]
-    for e in emails_as_ngrams:
-        lenght += 1 # function len() iterates over the list, in order to minimize iterations, I manually obtain the lenth in the same ngrams process iteration.
-        for ng in set(e):
-            try:
-                tdfs[ng] += 1
-            except KeyError:
-                tdfs[ng] = 1;
+def get_ngrams_idf(lemmatized_emails, n=1, other_ngrams=[], separator=None):
+    tdfs = defaultdict(lambda:0,{})
+    emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in lemmatized_emails]
+    for ngrams_for_email in emails_as_ngrams:
+        for ng in set(ngrams_for_email):
+            tdfs[ng] += 1
     # adding ngrams that doesn't appear in any document
     for ng in other_ngrams:
         if not(tdfs.get(ng)):
             tdfs[ng] = 0
-    return {k: log(float(lenght)/float(1+v)) for k, v in tdfs.items()}
+    return {k: log(float(len(emails_as_ngrams))/float(1+v)) for k, v in tdfs.items()}
 
-def get_top_percentile_ngrams_idf(emails_body, n=1, percentile=75, separator=None):
-    #body_emails must be in plaint text
-    idfs = dict()
-    emails_as_ngrams = np.array([find_ngrams(e,n,separator=separator) for e in emails_body])
-    n_grams = list(set([ng for ngs in emails_as_ngrams for ng in ngs]))
-    pool = multiprocessing.Pool(6)
-    partial_idf = partial(idf,emails_as_ngrams=emails_as_ngrams,separator=separator)
-    idfs = pool.map(partial_idf,n_grams)
-    #idfs = {ng: idf(ng,emails_as_ngrams,separator=separator) for ng in n_grams}
+def get_top_percentile_ngrams_idf(lemmatized_emails, n=1, percentile=75, separator=None):
+    #body_emails must be in plain text
+    idfs = get_ngrams_idf(lemmatized_emails,n,separator=separator)
     perc = np.percentile(idfs.values(), percentile)
     return {k: v for k, v in idfs.items() if v >= perc}
 
-def get_bottom_percentile_ngrams_idf(emails_body, n=1, percentile=75, separator=None):
-    #body_emails must be in plaint text
-    idfs = dict()
-    n_grams = [find_ngrams(e,n,separator=separator) for e in emails_body]
-    n_grams = list(set([ng for ngs in n_grams for ng in ngs]))
-    idfs = {ng: idf(ng,emails_body,separator=separator) for ng in n_grams}
+def get_bottom_percentile_ngrams_idf(lemmatized_emails, n=1, percentile=75, separator=None):
+    #body_emails must be in plain text
+    idfs = get_ngrams_idf(lemmatized_emails,n,separator=separator)
     perc = np.percentile(idfs.values(), percentile)
     return {k: v for k, v in idfs.items() if v <= perc}
 
@@ -95,34 +81,12 @@ def get_top_percentile_different_count_ngrams(spam_emails, ham_emails, percentil
     perc = np.percentile([abs(0.5-v[1]) for v in normalized_ngrams.values()], percentile)
     return {k: v for k, v in normalized_ngrams.items() if abs(0.5-v[1]) >= perc}
 
-
-def idf(t,emails_as_ngrams,separator=None):
-    # t must be in string, not array of strings
-    #MAP REDUCE!!!!!!!!!!!!!!!
-    D_t = len(filter(lambda x: t in x, emails_as_ngrams)) #[1 for d in emails_as_ngrams if t in d])
-    # D_size = float(len(emails_as_ngrams))
-    D_size = float(emails_as_ngrams.size)
-    # D_t_size = float(len(D_t))
-    D_t_size = float(D_t)
-    return log( D_size / (1 + D_t_size))
-
-def ft(t,d,separator=None):
-    # t and d must be in strings, not arrays of strings
-    n = len(t.split(' '))
-    n_grams = find_ngrams(d, n, separator=separator)
-    total_ngrams = float(len(n_grams))
-    t_count = float(len([1 for _ in n_grams if n == t]))
-    return  t_count / total_ngrams
-
-def ft_idf(t,d,D):
-    return ft(t,d)*idf(t,D)
-
-def get_top_percentile_idf_touples(spam_emails,ham_emails, n=1, percentile=75, separator=None):
-    idfs = dict()
-    n_grams = [find_ngrams(e,n,separator=separator) for e in spam_emails+ham_emails]
-    n_grams = list(set([ng for ngs in n_grams for ng in ngs]))
-    idfs = {ng: (idf(ng,spam_emails,separator=separator),idf(ng,ham_emails,separator=separator)) for ng in n_grams}
+def get_top_percentile_idf_touples(lemmatized_spam_emails,lemmatized_ham_emails, n=1, percentile=75, separator=None):
+    spam_emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in lemmatized_spam_emails]
+    ham_emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in lemmatized_ham_emails]
+    idfs_spam = get_ngrams_idf(spam_emails_as_ngrams,n,ham_emails_as_ngrams,separator=separator)
+    idfs_ham = get_ngrams_idf(spam_emails_as_ngrams,n,spam_emails_as_ngrams,separator=separator)
+    idfs = {k:(idfs_spam[k],idfs_ham[k]) for k in idfs_ham.keys() } # Las keys de idfs_ham y de idfs_spam son las mismas :) (no?)
     perc = np.percentile([abs(v[1]-v[0]) for v in idfs.values()], percentile)
     return {k: v for k, v in idfs.items() if abs(v[1]-v[0]) >= perc}
 
-    #dommy example
