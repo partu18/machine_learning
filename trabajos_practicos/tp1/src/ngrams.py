@@ -59,7 +59,7 @@ def get_ngrams_idf(lemmatized_emails, n=1, other_ngrams=[], separator=None, perc
     for ng in other_ngrams:
         tdfs[ng] = 0
         # uncomment next two lines and comment previous line to get a key cheking operation
-        # if not(tdfs.get(ng)):
+        # if not(tdfs.has_key(ng)):
         #    tdfs[ng] = 0
     items = tdfs.items()
     print lower_perc, upper_perc, items
