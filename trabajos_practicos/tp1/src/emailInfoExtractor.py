@@ -1,27 +1,29 @@
 import email as email_parser
 from emailHTMLParser import EmailHTMLParser
 from collections import defaultdict
-from constants import EMAIL_CTYPES, EMAIL_TEXT, EMAIL_HEADERS
+from constants import EMAIL_CTYPES, EMAIL_TEXT, EMAIL_HEADERS, EMAIL_ISMULTIPART
 from text_tokenizer import tokenize
 
 def text_to_content_type(txt):
-		    return txt.replace("\n"," ").replace("\r"," ").split(' ')[0]
+    return txt.replace("\n"," ").replace("\r"," ").split(' ')[0]
 
 class EmailInfoExtractor(object):
 	@classmethod
 	def get_email_info_structure(cls, email):
+	    msg = email_parser.message_from_string(email.encode('ascii','ignore'))
+	    contents_dict = cls.content_types_to_payload_from_email(msg)
 	    return {
-	            EMAIL_CTYPES:cls.content_types_to_payload_from_email(email),
-	            EMAIL_TEXT:cls.text_from_email(email),
-	            EMAIL_HEADERS:cls.headers_from_email(email)
+	            EMAIL_CTYPES:contents_dict,
+	            EMAIL_TEXT:cls.text_from_email(contents_dict),
+	            EMAIL_HEADERS:cls.headers_from_email(msg),
+	            EMAIL_ISMULTIPART:msg.is_multipart()
 	            }
 
 	@classmethod
-	def text_from_email(cls, email, separator='partugabylao'):
-	    contents = cls.content_types_to_payload_from_email(email)
-	    text_plain = contents['text/plain']
+	def text_from_email(cls, contents_to_payload, separator='partugabylao'):
+	    text_plain = contents_to_payload['text/plain']
 	    html_text = []       
-	    html_content = contents['text/html']
+	    html_content = contents_to_payload['text/html']
 	    parser = EmailHTMLParser()
 	    for html in html_content:
 	        parser.feed(html)
@@ -31,8 +33,7 @@ class EmailInfoExtractor(object):
 	    return ' '.join(tokenize(text))
 
 	@classmethod
-	def content_types_to_payload_from_email(cls, email):
-	    msg = email_parser.message_from_string(email.encode('ascii','ignore'))
+	def content_types_to_payload_from_email(cls, msg):
 	    payload = msg.get_payload()
 	    contents = []
 	    content_type_dict = defaultdict(lambda:[],{})
@@ -53,7 +54,6 @@ class EmailInfoExtractor(object):
 
 
 	@classmethod
-	def headers_from_email(cls, email):
-		msg = email_parser.message_from_string(email.encode('ascii','ignore'))
-		return {k.lower() for k,_ in dict(msg.items()).iteritems()}
+	def headers_from_email(cls, msg):
+		return {k.lower():v for k,v in dict(msg.items()).iteritems()}
 		 

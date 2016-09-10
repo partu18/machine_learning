@@ -1,5 +1,4 @@
 import email
-from helper import Helper
 from constants import SPAM, HAM
 
 class MIMEHeadersCounter(object):
@@ -30,7 +29,6 @@ class MIMEHeadersCounter(object):
                 else:
                     self.headers[header] = unit
 
-
     def exclusive_one_side_headers(self, min_appeareances=1):
         """
             Returns headers that ONLY appear either in spam or ham emails, but not in both.
@@ -42,26 +40,25 @@ class MIMEHeadersCounter(object):
                 exclusive_headers.update({header:self.headers[header]})
         return exclusive_headers
 
-
-    def differencer_headers(self, perc_difference=50, min_appeareances= 0 ):
+    def differencer_headers(self, times=1, min_appeareances= 0 ):
         """
-            Returns headers that the difference between the appearences of each type is 
-            greater than the perc_difference. Also, you can add a min_apparences threshold, which
+            Returns headers which the difference between the greater and the lower appeareances is
+            more than times*lower appearences . Also, you can add a min_apparences threshold, which
             will be compared with the  minimum of the two apperances.
         """
         differencer_headers = {}
         for header in self.headers:
             appearences= self.headers[header]
-            if ((min(appearences) + 1)* (100/float(perc_difference))) < max(appearences) and \
-                min(appearences) > min_appeareances:
+            if ((min(appearences) + 1)* times) < max(appearences) and \
+                max(appearences) > min_appeareances:
                 differencer_headers.update({header:self.headers[header]})
         return differencer_headers
 
-
-if __name__ == '__main__':
-    helper = Helper()
-    spam_emails, ham_emails = helper.get_parsed_emails()
-    counter = MIMEHeadersCounter(spam_emails, ham_emails)
-    print counter.exclusive_one_side_headers(min_appeareances=400)
-
-
+    def get_headers_for_features(self):
+        """ 
+            Returns a set with the headers that must be extracted of each new email we 
+            want to classify.
+        """
+        exclusive_headers = self.exclusive_one_side_headers(min_appeareances=100)
+        differencer_headers = self.differencer_headers(times=4, min_appeareances=400)
+        return set(exclusive_headers.keys()).union(set(differencer_headers))
