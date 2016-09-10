@@ -9,6 +9,9 @@ from collections import defaultdict
 def clean_string(string):
     return string.replace("\r","").replace("\n","").strip()
 
+def sort_by_value(dict):
+    import operator
+    return sorted(dict.items(), key=operator.itemgetter(1))
 
 def parse_files(spam_filename, ham_filename):
     with open(spam_filename,'r') as f:
@@ -43,29 +46,31 @@ def get_top_k_ngrams_count(lemmatized_emails, k, n=1, separator=None):
 # tdf stands for term document frecuency which is the total of document from the document array that contains the term
 # idf stands for inverse document frequency, defined as idf(t,D) = |D|/|{d in D where t in d}|
 # other_ngrams list allows to calculate idf for ngrams that doesn't appear in anny document
-def get_ngrams_idf(lemmatized_emails, n=1, other_ngrams=[], separator=None, percentile=25):
+def get_ngrams_idf(lemmatized_emails, n=1, separator=None, percentile=25):
     tdfs = defaultdict(lambda:0,{})
     emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in lemmatized_emails]
     for ngrams_for_email in emails_as_ngrams:
         for ng in set(ngrams_for_email):
             tdfs[ng] += 1
-    # filtering tdfs to get the top and bottom percentile.
+    items = tdfs.items()
+    count_ngrams = len(emails_as_ngrams)
+    return {k: log(float(count_ngrams)/float(1+v)) for k, v in items}
+
+def get_ngrams_idf_edges(lemmatized_emails,n=1, percentile=25,separator=None):
+    tdfs = defaultdict(lambda:0,{})
+    emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in lemmatized_emails]
+    for ngrams_for_email in emails_as_ngrams:
+        for ng in set(ngrams_for_email):
+            tdfs[ng] += 1
     tdfs_values = tdfs.values()
     tdfs_items = tdfs.items()
     lower_perc = np.percentile(tdfs_values, percentile)
     upper_perc = np.percentile(tdfs_values, 100 - percentile)
     tdfs = {k: v for k, v in tdfs_items if v < lower_perc or v > upper_perc}
-    # adding ngrams that doesn't appear in any document
-    for ng in other_ngrams:
-        tdfs[ng] = 0
-        # uncomment next two lines and comment previous line to get a key cheking operation
-        # if not(tdfs.has_key(ng)):
-        #    tdfs[ng] = 0
     items = tdfs.items()
-    print lower_perc, upper_perc, items
     count_ngrams = len(emails_as_ngrams)
-    print "haciendo el dict..."
-    return {k: log(float(count_ngrams)/float(1+v)) for k, v in items}
+    return {k: log(float(count_ngrams)/float(1+v)) for k, v in items}    
+
 
 def get_top_percentile_ngrams_idf(lemmatized_emails, n=1, percentile=75, separator=None):
     #body_emails must be in plain text
@@ -101,9 +106,9 @@ def get_top_percentile_idf_touples(lemmatized_spam_emails,lemmatized_ham_emails,
     #idfs_spam = get_ngrams_idf(lemmatized_spam_emails,n,set(sum(ham_emails_as_ngrams,[]))-set(sum(spam_emails_as_ngrams,[])),separator=separator)
     #idfs_ham = get_ngrams_idf(lemmatized_ham_emails,n,set(sum(spam_emails_as_ngrams,[]))-set(sum(ham_emails_as_ngrams,[])),separator=separator)
     print "Calculando IDFs spam"
-    idfs_spam = get_ngrams_idf(lemmatized_spam_emails,n,set(sum(ham_emails_as_ngrams,[]))-set(sum(spam_emails_as_ngrams,[])),separator=separator)
+    idfs_spam = get_ngrams_idf(lemmatized_spam_emails,n,set(sum(ham_emails_as_ngrams,[]))-set(sum(spam_emails_as_ngrams,[])),percentile=percentile,separator=separator)
     print "Calculando IDFs ham"
-    idfs_ham = get_ngrams_idf(lemmatized_ham_emails,n,set(sum(spam_emails_as_ngrams,[]))-set(sum(ham_emails_as_ngrams,[])),separator=separator)
+    idfs_ham = get_ngrams_idf(lemmatized_ham_emails,n,set(sum(spam_emails_as_ngrams,[]))-set(sum(ham_emails_as_ngrams,[])),percentile=percentile,separator=separator)
     #idfs = {k:(idfs_spam[k],idfs_ham[k]) for k in idfs_ham.keys() } # Las keys de idfs_ham y de idfs_spam son las mismas :) (no?)
     print "zipeando"
     idfs = dict(zip(idfs_spam.keys(),(idfs_spam.values(),idfs_ham.values())))
@@ -111,4 +116,13 @@ def get_top_percentile_idf_touples(lemmatized_spam_emails,lemmatized_ham_emails,
     perc = np.percentile([abs(v[1]-v[0]) for v in idfs.values()], percentile)
     print "por retornar"
     return {k: v for k, v in idfs.items() if abs(v[1]-v[0]) > perc}
+
+
+def light_touples(spam_ngram_idf, ham_ngram_idf, percentile=0):
+    inter = set(spam_ngram_idf.keys()).intersection(ham_ngram_idf.keys())
+    union = set(spam_ngram_idf.keys()).union(ham_ngram_idf.keys())
+    touples = {k: ((spam_ngram_idf[k],ham_ngram_idf[k]) if k in inter else ((spam_ngram_idf[k],float('Inf')) if k in spam_ngram_idf.keys() else (float('Inf'),ham_ngram_idf[k]) ))  for k in union }
+    perc = np.percentile(touples.values(),percentile)
+    abs_diff = {k:(abs(v[0]-v[1])) for k,v in touples.iteritems() if (abs(v[0]-v[1])) >= perc}
+    return dict(sort_by_value(abs_diff))
 
