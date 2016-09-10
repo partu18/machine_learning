@@ -53,7 +53,10 @@ def get_ngrams_idf(lemmatized_emails, n=1, other_ngrams=[], separator=None):
     for ng in other_ngrams:
         if not(tdfs.get(ng)):
             tdfs[ng] = 0
-    return {k: log(float(len(emails_as_ngrams))/float(1+v)) for k, v in tdfs.items()}
+    items = tdfs.items()
+    count_ngrams = len(emails_as_ngrams)
+    print "haciendo el dict..."
+    return {k: log(float(count_ngrams)/float(1+v)) for k, v in items}
 
 def get_top_percentile_ngrams_idf(lemmatized_emails, n=1, percentile=75, separator=None):
     #body_emails must be in plain text
@@ -89,9 +92,9 @@ def get_top_percentile_idf_touples(lemmatized_spam_emails,lemmatized_ham_emails,
     #idfs_spam = get_ngrams_idf(lemmatized_spam_emails,n,set(sum(ham_emails_as_ngrams,[]))-set(sum(spam_emails_as_ngrams,[])),separator=separator)
     #idfs_ham = get_ngrams_idf(lemmatized_ham_emails,n,set(sum(spam_emails_as_ngrams,[]))-set(sum(ham_emails_as_ngrams,[])),separator=separator)
     print "Calculando IDFs spam"
-    idfs_spam = get_ngrams_idf(lemmatized_spam_emails,n,set(sum(ham_emails_as_ngrams,[])),separator=separator)
+    idfs_spam = get_ngrams_idf(lemmatized_spam_emails,n,set(sum(ham_emails_as_ngrams,[]))-set(sum(spam_emails_as_ngrams,[])),separator=separator)
     print "Calculando IDFs ham"
-    idfs_ham = get_ngrams_idf(lemmatized_ham_emails,n,set(sum(spam_emails_as_ngrams,[])),separator=separator)
+    idfs_ham = get_ngrams_idf(lemmatized_ham_emails,n,set(sum(spam_emails_as_ngrams,[]))-set(sum(ham_emails_as_ngrams,[])),separator=separator)
     #idfs = {k:(idfs_spam[k],idfs_ham[k]) for k in idfs_ham.keys() } # Las keys de idfs_ham y de idfs_spam son las mismas :) (no?)
     print "zipeando"
     idfs = dict(zip(idfs_spam.keys(),(idfs_spam.values(),idfs_ham.values())))
