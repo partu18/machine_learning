@@ -1,66 +1,67 @@
 import email
-
 from helper import Helper
+from constants import SPAM, HAM
 
-def get_mime_headers_count(spam_emails, ham_emails):
-    headers_for_spam = dict()
-    for mail in spam_emails:
-        msg = email.message_from_string(mail.encode('ascii','ignore'))
-        info = {k.lower():v for k,v in dict(msg.items()).iteritems()}
-        for header in info.keys():
-            if header in headers_for_spam:
-                headers_for_spam[header] += 1
-            else:
-                headers_for_spam[header] = 1
+class MIMEHeadersCounter(object):
+    def __init__(self, spam_emails, ham_emails):
+        self.headers = {}
+        self.count_MIME_headers(spam_emails, SPAM)
+        self.count_MIME_headers(ham_emails, HAM)
 
-    headers_for_ham = dict()
-    for mail in ham_emails:
-        msg = email.message_from_string(mail.encode('ascii','ignore'))
-        info = {k.lower():v for k,v in dict(msg.items()).iteritems()}
-        for header in info.keys():
-            if header in headers_for_ham:
-                headers_for_ham[header] += 1
-            else:
-                headers_for_ham[header] = 1
+    def unit_for_emails_type(self, _type):
+        """
+            Returns the correct tuple to add according to the _type of email      
+        """
+        if _type == SPAM:
+            return (1,0)
+        elif _type == HAM:
+            return (0,1)
+        else:
+            raise Exception("Invalid type")
 
-    return headers_for_spam, headers_for_ham
-
-
-
-def get_one_side_mime_headers(headers_for_spam, headers_for_ham, min_appeareances= 1):
-    headers_only_spam =  set(headers_for_spam.keys()) - set(headers_for_ham.keys())
-    headers_only_ham =  set(headers_for_ham.keys()) - set(headers_for_spam.keys())
-
-    headers_only_spam_count = dict()
-    for header in headers_only_spam:
-        headers_only_spam_count[header] = headers_for_spam[header]
-
-    headers_only_ham_count = dict()
-    for header in headers_only_ham:
-        headers_only_ham_count[header] = headers_for_ham[header]
-
-    get_more_than_min_appeareaces = lambda x: x[1] > min_appeareances 
-    return dict(filter(get_more_than_min_appeareaces, headers_only_spam_count.iteritems())), dict(filter(get_more_than_min_appeareaces, headers_only_ham_count.iteritems()))
+    def count_MIME_headers(self, emails, emails_type):
+        unit = self.unit_for_emails_type(emails_type)
+        for mail in emails:
+            msg = email.message_from_string(mail.encode('ascii','ignore'))
+            info = {k.lower():v for k,v in dict(msg.items()).iteritems()}
+            for header in info.keys():
+                if header in self.headers:
+                    self.headers[header] = tuple(map(sum,(zip(self.headers[header],unit)))) #Gracias python!!   
+                else:
+                    self.headers[header] = unit
 
 
-def get_headers_that_make_the_difference(headers_for_spam, headers_for_ham, perc_difference=10):
-    res = {}
-    for header in headers_for_spam:
-        if header in headers_for_ham.keys():
-            amount_hams_with_header = headers_for_ham[header]
-            amount_spams_with_header = headers_for_spam[header]
-            if (min(amount_spams_with_header, amount_hams_with_header)*(100/perc_difference)) < max(amount_spams_with_header, amount_hams_with_header):
-                res.update({header: (amount_spams_with_header, amount_hams_with_header)})
-    return res
+    def exclusive_one_side_headers(self, min_appeareances=1):
+        """
+            Returns headers that ONLY appear either in spam or ham emails, but not in both.
+        """
+        exclusive_headers = {}
+        for header in self.headers:
+            appearences = self.headers[header]
+            if appearences.count(0) == 1 and max(appearences) > min_appeareances: #Truquillo
+                exclusive_headers.update({header:self.headers[header]})
+        return exclusive_headers
 
+
+    def differencer_headers(self, perc_difference=50, min_appeareances= 0 ):
+        """
+            Returns headers that the difference between the appearences of each type is 
+            greater than the perc_difference. Also, you can add a min_apparences threshold, which
+            will be compared with the  minimum of the two apperances.
+        """
+        differencer_headers = {}
+        for header in self.headers:
+            appearences= self.headers[header]
+            if ((min(appearences) + 1)* (100/float(perc_difference))) < max(appearences) and \
+                min(appearences) > min_appeareances:
+                differencer_headers.update({header:self.headers[header]})
+        return differencer_headers
 
 
 if __name__ == '__main__':
     helper = Helper()
     spam_emails, ham_emails = helper.get_parsed_emails()
-    spam_headers, ham_headers = get_mime_headers_count(spam_emails, ham_emails)
-
-    # print get_one_side_mime_headers(spam_headers, ham_headers, min_appeareances=100)
-    print get_headers_that_make_the_difference(spam_headers, ham_headers, perc_difference=20)
+    counter = MIMEHeadersCounter(spam_emails, ham_emails)
+    print counter.exclusive_one_side_headers(min_appeareances=400)
 
 

@@ -48,3 +48,11 @@ def plain_text_contents(mail):
 def image_contents(mail):
     return sum([len(v) for k,v in mail['as_hash'].itermitems() if k.startswith('image')])
 
+
+#DE LAO, HAY QUE RETOCARLAS PARA QUE RECIBAN LOS PARAMAETROS CORRECTOS Y BLA BLA 
+def is_replay(msg):
+    return 're:' in msg['subject']
+
+def has_javamail(msg):
+    return 'javamail' in msg['message-id']
+

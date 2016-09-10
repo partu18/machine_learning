@@ -1,0 +1,5 @@
+SPAM = 'spam'
+HAM = 'ham'
+EMAIL_CTYPES = 'ctypes'
+EMAIL_HEADERS = 'headers'
+EMAIL_TEXT = 'text'

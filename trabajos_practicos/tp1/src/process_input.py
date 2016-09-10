@@ -1,16 +1,16 @@
-from inspect import getmembers, isfunction
 import features
 import ngram_features
 
-from common_functions import *
-
 from helper import Helper
+from inspect import getmembers, isfunction
+from emailInfoExtractor import EmailInfoExtractor
+
 
 features_functions = [m for m in getmembers(features) if isfunction(m[1])]
 ngram_features_functions = [m for m in getmembers(ngram_features) if isfunction(m[1])]
 
 def preprocess(raw_emails):
-	return [{'as_hash':get_emails_by_ctype_to_payload(mail),'text':text_from_email(mail)} for mail in emails] #TODO: multiprocessing?
+	return [EmailInfoExtractor.get_email_info_structure(mail) for mail in raw_emails] #TODO: multiprocessing?
 
 def process_email(email):
 	#simple features
