@@ -11,9 +11,9 @@ if __name__ == "__main__":
     
     helper = Helper()
     spam_emails, ham_emails = helper.get_parsed_emails()
-    sc = StatisticsGenerator(spam_emails, ham_emails)
+    # sc = StatisticsGenerator(spam_emails, ham_emails)
 
-    sc.get_stats_for_fn(has_reply_to)
+    # sc.get_stats_for_fn(has_reply_to)
 #    
     # res = sc.get_emails_by_ctype_to_payload()
     # parsed_spams = res['spam']

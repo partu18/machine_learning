@@ -14,11 +14,11 @@ from nltk.corpus import stopwords
 ###############
 
 lematizer = WordNetLemmatizer()
-stemmer = PorterStemmer()
+#stemmer = PorterStemmer()
 stop_words = stopwords.words('english')
 
 def tokenize(text):
-    tokens = word_tokenize(text)
+    tokens = word_tokenize(text.lower())
     tokens = [i for i in tokens if i not in string.punctuation and i not in stop_words]
     lemmas = lemmatize_tokens(pos_tag(tokens), lematizer)
     return lemmas

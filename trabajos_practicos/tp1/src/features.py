@@ -1,5 +1,4 @@
 import email
-import common_functions as cf
 
 def is_multi_part(mail):
     #Spam 0.37, Ham 0.06
@@ -23,35 +22,29 @@ def has_reply_to(mail):
 
 # application -> o sea sin discriminar desp el tipo
 def application_contents(mail):
-    contents = cf.content_types_in_email(mail, in_dict=False)
-    return len([c for c in contents if c[0].startswith('application')])
+    return sum([len(v) for k,v in mail['as_hash'].itermitems() if k.startswith('application')])
 
 # text/html
 def html_contents(mail):
-    contents = cf.content_types_in_email(mail, in_dict=False)
-    return len([ c for c in contents if c[0] == 'texto/html'])
+    return len(mail['as_hash']['text/html'])
 
 # audio -> sin discriminar el tipo
 def audio_contents(mail):
-    contents = cf.content_types_in_email(mail, in_dict=False)
-    return len([ c for c in contents if c[0].startswith('audio')])
+    return sum([len(v) for k,v in mail['as_hash'].itermitems() if k.startswith('audio')])
 
 # image/gif
 def gif_contents(mail):
-    contents = cf.content_types_in_email(mail, in_dict=False)
-    return len([ c for c in contents if c[0] == 'image/gif'])
+    return len(mail['as_hash']['image/gif'])
 
 # image/jpeg
 def jpeg_contents(mail):
-    contents = cf.content_types_in_email(mail, in_dict=False)
-    return len([c for c in contents if c[0] == 'image/jpeg'])
+    return len(mail['as_hash']['image/jpeg'])
 
 # text/plain
 def plain_text_contents(mail):
-    contents = cf.content_types_in_email(mail, in_dict=False)
-    return len([c for c in contents if c[0] == 'text/plain'])
+    return len(mail['as_hash']['text/plain'])
 
 # imagenes globales -> O sea sin importar de que tipo
 def image_contents(mail):
-    contents = cf.content_types_in_email(mail, in_dict=False)
-    len([c for c in contents if c[0].startswith('image')])
+    return sum([len(v) for k,v in mail['as_hash'].itermitems() if k.startswith('image')])
+

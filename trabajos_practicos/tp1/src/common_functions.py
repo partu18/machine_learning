@@ -44,7 +44,7 @@ def get_emails_by_ctype_to_payload(spam,ham):
 def text_to_content_type(txt):
     return txt.replace("\n"," ").replace("\r"," ").split(' ')[0]
 
-def content_types_in_email(email,in_dict=True):
+def content_types_in_email(email):
     msg = email_parser.message_from_string(email.encode('ascii','ignore'))
     payload = msg.get_payload()
     contents = []
@@ -60,20 +60,17 @@ def content_types_in_email(email,in_dict=True):
     else:
         contents.append((text_to_content_type(msg.get_content_type()),payload))
 
-    if not in_dict:
-        return contents
-
     for content in contents:
         content_type_dict[content[0]].append(content[1])
         
     return content_type_dict
 
 def text_from_email(email, separator='partugabylao'):
-    contents = content_types_for_email(email)
+    contents = content_types_in_email(email)
     text_plain = contents['text/plain']
+    html_text = []       
     html_content = contents['text/html']
     parser = EmailHTMLParser()
-    html_text = []
     for html in html_content:
         parser.feed(html)
         if parser.data['body'] != '':
@@ -82,12 +79,16 @@ def text_from_email(email, separator='partugabylao'):
     return ' '.join(tokenize(text))
 
 
+def sort_by_value(dict):
+    import operator
+    return sorted(dict.items(), key=operator.itemgetter(1))
+
 #### TODO: SI ESTO NO SE USA MOVERLO AL CARAJOOO
 
 def idf(term,emails_as_ngrams,separator=None):
     # t must be in string, not array of strings
     #MAP REDUCE!!!!!!!!!!!!!!!
-    D_t = len(filter(lambda x: term in x, emails_as_ngrams)) #[1 for d in emails_as_ngrams if t in d])
+    D_t = len(filter(lambda x: term in x, emails_as_ngrams)) #[1 for ngrams_email in emails_as_ngrams if term in d])
     # D_size = float(len(emails_as_ngrams))
     D_size = float(emails_as_ngrams.size)
     # D_t_size = float(len(D_t))

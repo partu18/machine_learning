@@ -67,12 +67,12 @@ def get_bottom_percentile_ngrams_idf(lemmatized_emails, n=1, percentile=75, sepa
     perc = np.percentile(idfs.values(), percentile)
     return {k: v for k, v in idfs.items() if v <= perc}
 
-def get_top_percentile_different_count_ngrams(spam_emails, ham_emails, percentile=75, n=1, separator=None):
-    spam_ngrams = [find_ngrams(e,n,separator=separator) for e in spam_emails]
+def get_top_percentile_different_count_ngrams(lemmatized_spam_emails, lemmatized_ham_emails, n=1, percentile=75, separator=None):
+    spam_ngrams = [find_ngrams(e,n,separator=separator) for e in lemmatized_spam_emails]
     spam_ngrams = [ng for ngs in spam_ngrams for ng in ngs]
     spam_counter = {k: float(spam_ngrams.count(k)) for k in set(spam_ngrams)}
 
-    ham_ngrams = [find_ngrams(e,n,separator=separator) for e in ham_emails]
+    ham_ngrams = [find_ngrams(e,n,separator=separator) for e in lemmatized_ham_emails]
     ham_ngrams = [ng for ngs in ham_ngrams for ng in ngs]
     ham_counter = {k: float(ham_ngrams.count(k)) for k in set(ham_ngrams)}
 
@@ -82,11 +82,21 @@ def get_top_percentile_different_count_ngrams(spam_emails, ham_emails, percentil
     return {k: v for k, v in normalized_ngrams.items() if abs(0.5-v[1]) >= perc}
 
 def get_top_percentile_idf_touples(lemmatized_spam_emails,lemmatized_ham_emails, n=1, percentile=75, separator=None):
+    print "Calculando ngrams spam"
     spam_emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in lemmatized_spam_emails]
+    print "Calculando ngrams ham"
     ham_emails_as_ngrams = [find_ngrams(e,n,separator=separator) for e in lemmatized_ham_emails]
-    idfs_spam = get_ngrams_idf(spam_emails_as_ngrams,n,ham_emails_as_ngrams,separator=separator)
-    idfs_ham = get_ngrams_idf(spam_emails_as_ngrams,n,spam_emails_as_ngrams,separator=separator)
-    idfs = {k:(idfs_spam[k],idfs_ham[k]) for k in idfs_ham.keys() } # Las keys de idfs_ham y de idfs_spam son las mismas :) (no?)
+    #idfs_spam = get_ngrams_idf(lemmatized_spam_emails,n,set(sum(ham_emails_as_ngrams,[]))-set(sum(spam_emails_as_ngrams,[])),separator=separator)
+    #idfs_ham = get_ngrams_idf(lemmatized_ham_emails,n,set(sum(spam_emails_as_ngrams,[]))-set(sum(ham_emails_as_ngrams,[])),separator=separator)
+    print "Calculando IDFs spam"
+    idfs_spam = get_ngrams_idf(lemmatized_spam_emails,n,set(sum(ham_emails_as_ngrams,[])),separator=separator)
+    print "Calculando IDFs ham"
+    idfs_ham = get_ngrams_idf(lemmatized_ham_emails,n,set(sum(spam_emails_as_ngrams,[])),separator=separator)
+    #idfs = {k:(idfs_spam[k],idfs_ham[k]) for k in idfs_ham.keys() } # Las keys de idfs_ham y de idfs_spam son las mismas :) (no?)
+    print "zipeando"
+    idfs = dict(zip(idfs_spam.keys(),(idfs_spam.values(),idfs_ham.values())))
+    print "percentileando"
     perc = np.percentile([abs(v[1]-v[0]) for v in idfs.values()], percentile)
+    print "por retornar"
     return {k: v for k, v in idfs.items() if abs(v[1]-v[0]) >= perc}
 
