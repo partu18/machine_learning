@@ -29,4 +29,3 @@ if __name__ == "__main__":
 
 	preprocessed_spams = preprocess(spam_emails)
 	preprocessed_hams = preprocess(ham_emails)
-
