@@ -2,6 +2,9 @@ import features
 import ngram_features
 import mime_headers_features
 import pandas as pd
+import pickle
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.cross_validation import cross_val_score
 
 from helper import Helper
 from inspect import getmembers, isfunction
@@ -33,21 +36,32 @@ if __name__ == "__main__":
 
     helper = Helper()
 
+    print "Leyendo jsons"
     spam_emails, ham_emails = helper.get_parsed_emails()
 
+    print "Preprocesando spams"
     preprocessed_spams = preprocess(spam_emails)
+    print "Preprocesando hams"
     preprocessed_hams = preprocess(ham_emails)
 
+
+    # Extraigo atributos
+    print "Extrayendo features de spam"
+    processed_spams = [process_email(mail) for mail in preprocessed_spams] # Multiprocessing?
+    print "Extrayendo features de ham"
+    processed_hams = [process_email(mail) for mail in preprocessed_hams] # Multiprocessing?
+
+    print "Creando dataframe.."
     df = pd.DataFrame(ham_emails+spam_emails, columns=['raw_email'])
     df['class'] = ['ham' for _ in range(len(ham_emails))]+['spam' for _ in range(len(spam_emails))]
 
-    # Extraigo atributos
-    processed_spams = [process_email(mail) for mail in preprocessed_spams] # Multiprocessing?
-    processed_hams = [process_email(mail) for mail in preprocessed_hams] # Multiprocessing?
 
     extracted_features = processed_hams[0].keys()
     for extracted_feature in extracted_features:  ## ESTE FOR TARDA MUCHO!!!!!
+        print "Escribiendo feature " + extracted_feature
         df[extracted_feature] = [mail[extracted_feature] for mail in (processed_hams+processed_spams)]
+
+    pickle.dump(df,open('df.pickle','w'))
 
     # Preparo data para clasificar
     X = df[extracted_features].values
