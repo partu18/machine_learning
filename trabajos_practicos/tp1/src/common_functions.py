@@ -14,11 +14,6 @@ def parse_files(spam_filename, ham_filename):
     return json.loads(clean_string(spam_json)), json.loads(clean_string(ham_json))
 
 
-
-
-
-
-
 ##########  DEPREATED  ???  ###############################
 
 def get_emails_by_ctype_to_payload(spam,ham):
