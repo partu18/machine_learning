@@ -13,31 +13,31 @@ def has_more_than_1_receiver(email_structure):
 
 # application -> o sea sin discriminar desp el tipo
 def application_contents(email_structure):
-    return sum([len(v) for k,v in email_structure[EMAIL_CTYPES].itermitems() if k.startswith('application')])
+    return sum([len(v) for k,v in email_structure[EMAIL_CTYPES].iteritems() if k.startswith('application')])
 
 # text/html
 def html_contents(email_structure):
-    return len(email_structure[EMAIL_CTYPES].get('text/html',0))
+    return len(email_structure[EMAIL_CTYPES]['text/html'])
 
 # audio -> sin discriminar el tipo
 def audio_contents(email_structure):
-    return sum([len(v) for k,v in email_structure[EMAIL_CTYPES].itermitems() if k.startswith('audio')])
+    return sum([len(v) for k,v in email_structure[EMAIL_CTYPES].iteritems() if k.startswith('audio')])
 
 # image/gif
 def gif_contents(email_structure):
-    return len(email_structure[EMAIL_CTYPES].get('image/gif',0))
+    return len(email_structure[EMAIL_CTYPES]['image/gif'])
 
 # image/jpeg
 def jpeg_contents(email_structure):
-    return len(email_structure[EMAIL_CTYPES].get('image/jpeg',0))
+    return len(email_structure[EMAIL_CTYPES]['image/jpeg'])
 
 # text/plain
 def plain_text_contents(email_structure):
-    return len(email_structure[EMAIL_CTYPES].get('text/plain',0))
+    return len(email_structure[EMAIL_CTYPES]['text/plain'])
 
 # imagenes globales -> O sea sin importar de que tipo
 def image_contents(email_structure):
-    return sum([len(v) for k,v in email_structure[EMAIL_CTYPES].itermitems() if k.startswith('image')])
+    return sum([len(v) for k,v in email_structure[EMAIL_CTYPES].iteritems() if k.startswith('image')])
 
 def is_replay(email_structure):
     return 're:' in email_structure[EMAIL_HEADERS].get('subject','')
