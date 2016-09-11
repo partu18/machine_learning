@@ -1,6 +1,6 @@
 import string
 from nltk import word_tokenize          
-#from nltk.stem.porter import PorterStemmer
+from nltk.stem.porter import PorterStemmer
 from nltk.corpus import wordnet as wn
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk import pos_tag
@@ -14,17 +14,21 @@ from nltk.corpus import stopwords
 ###############
 
 lematizer = WordNetLemmatizer()
-#stemmer = PorterStemmer()
+stemmer = PorterStemmer()
 stop_words = stopwords.words('english')
 
 def tokenize(text):
     tokens = word_tokenize(text.lower())
     tokens = [i for i in tokens if i not in string.punctuation and i not in stop_words]
-    lemmas = lemmatize_tokens(pos_tag(tokens), lematizer)
-    return lemmas
+    #lemmas = lemmatize_tokens(pos_tag(tokens), lematizer)
+    stems = stem_tokens(tokens,stemmer)
+    return stems
 
 def stem_tokens(tokens,stemmer):
-    return NotImplementedError('elegir un stemmer')
+    stemmed = []
+    for token in tokens:
+        stemmed.append(stemmer.stem(token))
+    return stemmed
 
 def lemmatize_tokens(tagged_tokens, lematizer):
     lemmatized = []
