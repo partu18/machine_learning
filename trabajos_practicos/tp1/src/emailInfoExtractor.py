@@ -19,6 +19,7 @@ def get_email_info_structure(email):
 
 def text_from_email(contents_to_payload, separator='partugabylao'):
     text_plain = contents_to_payload['text/plain']
+    alternative_text = contents_to_payload['text/alternative']
     html_text = []       
     html_content = contents_to_payload['text/html']
     parser = EmailHTMLParser()
@@ -26,7 +27,7 @@ def text_from_email(contents_to_payload, separator='partugabylao'):
         parser.feed(html)
         if parser.data['body'] != '':
             html_text.append(parser.data['body'])
-    text = (' ' + separator + ' ').join(text_plain + html_text)
+    text = (' ' + separator + ' ').join(text_plain + html_text + alternative_text)
     return ' '.join(tokenize(text))
 
 def content_types_to_payload_from_email(msg):
