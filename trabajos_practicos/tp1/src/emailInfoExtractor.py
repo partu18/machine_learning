@@ -11,6 +11,7 @@ def get_email_info_structure(email):
     msg = email_parser.message_from_string(email.encode('ascii','ignore'))
     contents_dict = content_types_to_payload_from_email(msg)
     return {
+            EMAIL_EQUAL_COUNT:msg.as_string().count('='),
             EMAIL_CTYPES:contents_dict,
             EMAIL_TEXT:text_from_email(contents_dict),
             EMAIL_HEADERS:headers_from_email(msg),

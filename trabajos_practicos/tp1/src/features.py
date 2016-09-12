@@ -1,4 +1,4 @@
-from constants import EMAIL_CTYPES, EMAIL_HEADERS, EMAIL_ISMULTIPART
+from constants import EMAIL_CTYPES, EMAIL_HEADERS, EMAIL_ISMULTIPART, EMAIL_TEXT
 
 def is_multi_part(email_structure):
     #Spam 0.37, Ham 0.06
@@ -44,4 +44,13 @@ def is_replay(email_structure):
 
 def has_javamail(email_structure):
     return 'javamail' in email_structure.get('message-id','')
+
+def text_length(email_structure):
+    return len(email_structure[EMAIL_TEXT])
+
+def spaces_count(email_structure):
+    return email_structure[EMAIL_TEXT].count(' ')
+
+def equals_count(email_structure):
+    return email_structure[EMAIL_EQUAL_COUNT]
 
