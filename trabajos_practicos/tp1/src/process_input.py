@@ -3,9 +3,10 @@ import ngram_features
 import mime_headers_features
 import pandas as pd
 import pickle
+import numpy as np
+
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.cross_validation import cross_val_score
-
 from helper import Helper
 from inspect import getmembers, isfunction
 from emailInfoExtractor import *
