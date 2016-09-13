@@ -22,7 +22,7 @@ for n in [1,2,3,4,5,7,10]:
 		percentile = 0.5
 	spam_bottom_idf = get_bottom_percentile_ngrams_idf(text_spams, n=n,percentile=percentile, separator='partugabylao')
 	pickle.dump(dict(spam_bottom_idf),open('spam_bottom_'+`n`+'.pickle','w'))
-	ham_bottom_idf = get_top_percentile_ngrams_idf(text_hams, n=n,percentile=100-percentile, separator='partugabylao')
+	ham_top_idf = get_top_percentile_ngrams_idf(text_hams, n=n,percentile=100-percentile, separator='partugabylao')
 	pickle.dump(dict(ham_bottom_idf),open('ham_bottom_'+`n`+'.pickle','w'))
 
 
@@ -30,7 +30,7 @@ for n in [1,2,3,4,5,7,10]:
 	percentile = 0.005
 	if n == 1:
 		percentile = 0.5
-	spam_bottom_idf = get_top_percentile_ngrams_idf(text_spams, n=n,percentile=100-percentile, separator='partugabylao')
+	spam_top_idf = get_top_percentile_ngrams_idf(text_spams, n=n,percentile=100-percentile, separator='partugabylao')
 	pickle.dump(dict(spam_bottom_idf),open('spam_bottom_'+`n`+'.pickle','w'))
 	ham_bottom_idf = get_bottom_percentile_ngrams_idf(text_hams, n=n,percentile=percentile, separator='partugabylao')
 	pickle.dump(dict(ham_bottom_idf),open('ham_bottom_'+`n`+'.pickle','w'))

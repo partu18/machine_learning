@@ -1,4 +1,4 @@
-from constants import EMAIL_CTYPES, EMAIL_HEADERS, EMAIL_ISMULTIPART, EMAIL_TEXT
+from constants import *
 
 def is_multi_part(email_structure):
     #Spam 0.37, Ham 0.06
@@ -54,3 +54,5 @@ def spaces_count(email_structure):
 def equals_count(email_structure):
     return email_structure[EMAIL_EQUAL_COUNT]
 
+def star_count(email_structure):
+    return email_structure[EMAIL_STAR_COUNT]

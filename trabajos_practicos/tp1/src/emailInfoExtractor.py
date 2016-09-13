@@ -1,7 +1,7 @@
 import email as email_parser
 from emailHTMLParser import EmailHTMLParser
 from collections import defaultdict
-from constants import EMAIL_CTYPES, EMAIL_TEXT, EMAIL_HEADERS, EMAIL_ISMULTIPART
+from constants import *
 from text_tokenizer import tokenize
 
 def text_to_content_type(txt):
@@ -9,9 +9,14 @@ def text_to_content_type(txt):
 
 def get_email_info_structure(email):
     msg = email_parser.message_from_string(email.encode('ascii','ignore'))
+    try: #FIXME O INFIERNO
+    	txt = msg.as_string()
+    except:
+    	txt = ''
     contents_dict = content_types_to_payload_from_email(msg)
     return {
-            EMAIL_EQUAL_COUNT:msg.as_string().count('='),
+            EMAIL_EQUAL_COUNT:txt.count('='),
+            EMAIL_STAR_COUNT:txt.count('*'),
             EMAIL_CTYPES:contents_dict,
             EMAIL_TEXT:text_from_email(contents_dict),
             EMAIL_HEADERS:headers_from_email(msg),
