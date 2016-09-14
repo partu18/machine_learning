@@ -18,7 +18,7 @@ features_functions = [m for m in getmembers(features) if isfunction(m[1])]
 ngram_features_functions = [m for m in getmembers(ngram_features) if isfunction(m[1])]
 mime_headers_features_functions = [m for m in getmembers(mime_headers_features) if isfunction(m[1])]
 
-def local_gird_search(X,y,curr_depth,curr_features,neighbor_depth=1):
+def local_grid_search(X,y,curr_depth,curr_features,neighbor_depth=1):
     local_params = dict()
     local_params['splitter'] = ['best','random']
     local_params['max_features'] = range(curr_features-neighbor_depth,curr_features+neighbor_depth+1)
@@ -26,19 +26,21 @@ def local_gird_search(X,y,curr_depth,curr_features,neighbor_depth=1):
     grid = GridSearchCV(DecisionTreeClassifier(), local_params, cv=10)
     return grid.fit(X,y)
 
-def local_search(X,y):
+def local_search(X,y,extracted_features):
     ## initial random sub-set parameters grid
     feature_amount = len(df[extracted_features])
     last_score = 0
     curr_depth = randint(1,feature_amount)
     curr_features = randint(1,feature_amount)
-    grid = local_gird_search(X,y,curr_depth,curr_features)
+    grid = local_grid_search(X,y,curr_depth,curr_features)
 
     ## start local search
     while grid.best_score_ > last_score:
         last_score = gird.best_score_sub
-        grid = local_gird_search(X,y,grid.best_params_['max_depth'],grid.best_params_['max_features'])
-
+        grid = local_grid_search(X,y,grid.best_params_['max_depth'],grid.best_params_['max_features'])
+        print grid.best_score_, last_score
+        print grid.best_params_
+    
     return grid
 
 def preprocess(raw_emails):
@@ -99,7 +101,7 @@ if __name__ == "__main__":
 
     
     #local search grid
-    grid = local_search(X,y)
+    grid = local_search(X,y,extracted_feature)
     print grid.best_score_
     print grid.best_params_
 
@@ -117,9 +119,6 @@ if __name__ == "__main__":
 
     # Ejecuto el clasificador entrenando con un esquema de cross validation
     # de 10 folds.
-    res = cross_val_score(clf, X, y, cv=10)
-    print np.mean(res), np.std(res)
+    #res = cross_val_score(clf, X, y, cv=10)
+    #print np.mean(res), np.std(res)
     # salida: 0.783040309346 0.0068052434174  (o similar)
-
-
-[]

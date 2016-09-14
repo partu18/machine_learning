@@ -122,7 +122,6 @@ def light_touples(spam_ngram_idf, ham_ngram_idf, percentile=0):
     inter = set(spam_ngram_idf.keys()).intersection(ham_ngram_idf.keys())
     union = set(spam_ngram_idf.keys()).union(ham_ngram_idf.keys())
     touples = {k: ((spam_ngram_idf[k],ham_ngram_idf[k]) if k in inter else ((spam_ngram_idf[k],float('Inf')) if k in spam_ngram_idf.keys() else (float('Inf'),ham_ngram_idf[k]) ))  for k in union }
-    perc = np.percentile(touples.values(),percentile)
-    abs_diff = {k:(abs(v[0]-v[1])) for k,v in touples.iteritems() if (abs(v[0]-v[1])) >= perc}
+    abs_diff = {k:(abs(v[0]-v[1])) for k,v in touples.iteritems()}
     return dict(sort_by_value(abs_diff))
 
