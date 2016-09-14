@@ -12,9 +12,34 @@ from helper import Helper
 from inspect import getmembers, isfunction
 from emailInfoExtractor import *
 
+from random import randint
+
 features_functions = [m for m in getmembers(features) if isfunction(m[1])]
 ngram_features_functions = [m for m in getmembers(ngram_features) if isfunction(m[1])]
 mime_headers_features_functions = [m for m in getmembers(mime_headers_features) if isfunction(m[1])]
+
+def local_gird_search(X,y,curr_depth,curr_features,neighbor_depth=1):
+    local_params = dict()
+    local_params['splitter'] = ['best','random']
+    local_params['max_features'] = range(curr_features-neighbor_depth,curr_features+neighbor_depth+1)
+    local_params['max_depth'] = range(curr_depth-neighbor_depth,curr_depth+neighbor_depth+1)
+    grid = GridSearchCV(DecisionTreeClassifier(), local_params, cv=10)
+    return grid.fit(X,y)
+
+def local_search(X,y):
+    ## initial random sub-set parameters grid
+    feature_amount = len(df[extracted_features])
+    last_score = 0
+    curr_depth = randint(1,feature_amount)
+    curr_features = randint(1,feature_amount)
+    grid = local_gird_search(X,y,curr_depth,curr_features)
+
+    ## start local search
+    while grid.best_score_ > last_score:
+        last_score = gird.best_score_sub
+        grid = local_gird_search(X,y,grid.best_params_['max_depth'],grid.best_params_['max_features'])
+
+    return grid
 
 def preprocess(raw_emails):
     return [get_email_info_structure(mail) for mail in raw_emails]
@@ -73,6 +98,11 @@ if __name__ == "__main__":
     clf = DecisionTreeClassifier()
 
     
+    #local search grid
+    grid = local_search(X,y)
+    print grid.best_score_
+    print grid.best_params_
+
     #obtengo los mejores parametros con grid search
     #feature_amount = len(df[extracted_features])
     #parameters = dict()
