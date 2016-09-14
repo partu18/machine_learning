@@ -5,7 +5,7 @@ import json
 def get_1grams_features(email_structure, separator='partugabylao'):
     features_count = dict()
     email_ngrams = ng.find_ngrams(email_structure[EMAIL_TEXT], n=1, separator=separator)
-    features = json.load(open('ngram_features/1grams_v3.json'))
+    features = json.load(open('ngram_features/1grams.json'))
     for ft in features:
        features_count[ft] = email_ngrams.count(ft)
     return features_count
