@@ -6,6 +6,7 @@ import pickle
 import numpy as np
 
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import cross_val_score
 from helper import Helper
 from inspect import getmembers, isfunction
@@ -71,6 +72,19 @@ if __name__ == "__main__":
     # Elijo mi clasificador.
     clf = DecisionTreeClassifier()
 
+    
+    #obtengo los mejores parametros con grid search
+    #feature_amount = len(df[extracted_features])
+    #parameters = dict()
+    #parameters['splitter'] = ['best','random']
+    #parameters['max_features'] = [None]+range(1,feature_amount)
+    #parameters['max_depth'] = [None]+range(1,feature_amount)
+    #grid = GridSearchCV(clf, parameters, cv=10)
+    #grid.fit(X,y)
+    #print grid.best_score_
+    #print grid.best_params_
+
+
     # Ejecuto el clasificador entrenando con un esquema de cross validation
     # de 10 folds.
     res = cross_val_score(clf, X, y, cv=10)
@@ -78,3 +92,4 @@ if __name__ == "__main__":
     # salida: 0.783040309346 0.0068052434174  (o similar)
 
 
+[]
