@@ -2,5 +2,5 @@
 	"C":[1.0,0.9,0.5,0.2,0.1],
 	"kernel":["linear","poly","rbf","sigmoid","precomputed"],
 	"degree": [2,3],
-	"shrinkin": [true, false],
+	"shrinkin": [true, false]
 }

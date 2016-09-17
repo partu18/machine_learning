@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import pickle
 import json
-import sys
 from argparse import ArgumentParser
 
 # clasificators
