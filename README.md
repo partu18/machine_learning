@@ -3,6 +3,6 @@ Repository for the Machine learning course
 
 
 # Installation
-1. Execute the makefile: make (virtualenv is required).
-2. Activate the virtual env: source ml_venv/bin/activate.
-3. Run any script you want.
+1. Create a virtualenv.
+2. Install all the packages listed in the requirements.txt (if 'pip install -r requirements.txt' don't work, try installing them manually) 
+3. Install nltk stopwords and punkt : 'python -m nltk.downloader stopwords punkt'
