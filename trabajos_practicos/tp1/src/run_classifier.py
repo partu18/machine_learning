@@ -4,6 +4,7 @@ import pandas as pd
 import pickle
 import json
 import sys
+from argparse import ArgumentParser
 
 # clasificators
 from sklearn.ensemble import RandomForestClassifier
@@ -46,9 +47,16 @@ def execute_classifier(classifier, X, target, params, n_jobs=1, folds=10, scorin
 
 if __name__ == '__main__':
 
-    if len(sys.argv) < 4:
-        print 'usage {script_name} dataset parameters grid_output.pickle'.format(script_name=sys.argv[0])
-        exit(1)
+    parser = ArgumentParser()
+
+    parser.add_argument('-d',dest='dataset', help="Name of the dataset json file inside the pickles directory.")
+    parser.add_argument('-p',dest='parameters', help="Name of the parameters json file inside the params directory.")
+    parser.add_argument('-c',dest='classifier', choices=['RandomForest','KNN','Tree','NB','SVM'], help="Name of the classifier to use.")
+
+    args = parser.parse_args()
+
+    if not args.dataset or not args.parameters or not args.classifier:
+        parser.error("Missing parameters")
 
     clasificators = dict()
     clasificators['RandomForest'] = RandomForestClassifier()
@@ -58,13 +66,13 @@ if __name__ == '__main__':
     clasificators['SVM'] = SVC()
     
     print "Leyendo dataframe con reduccion de dimensionalidad..."
-    X = pickle.load(open('pickle/'+sys.argv[1]+'.pickle','r'))
+    X = pickle.load(open('pickle/{}.pickle'.format(args.dataset),'r'))
     y = pickle.load(open('pickle/y.pickle','r'))
 
     print "Leyendo la grilla de parametros..."
-    params = json.load(open('params/'+sys.argv[2]+'.json','r'))
+    params = json.load(open('params/{}.json'.format(args.parameters),'r'))
     params = {k:map(lambda x: x if not(x == 'None') else None, v) for k,v in params.iteritems() }
 
     print "Ejecutando Grid Search..."
-    grid = execute_classifier(clasificators[sys.argv[3]], X, y, params, n_jobs=-1, grid_search=True)
-    pickle.dump(grid,open('pickle/'+sys.argv[3],'wb'))
+    grid = execute_classifier(clasificators[args.classifier], X, y, params, n_jobs=-1, grid_search=True)
+    pickle.dump(grid,open('pickle/{}'.format(args.classifier),'wb'))
