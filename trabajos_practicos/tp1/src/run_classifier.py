@@ -51,19 +51,20 @@ if __name__ == '__main__':
         exit(1)
 
     clasificators = dict()
-    clasificators['RandomForestClassifier'] = RandomForestClassifier
-    clasificators['KNeighborsClassifier'] = KNeighborsClassifier
-    clasificators['DecisionTreeClassifier'] = DecisionTreeClassifier
-    clasificators['GaussianNB'] = GaussianNB
-    clasificators['SVC'] = SVC
+    clasificators['RandomForest'] = RandomForestClassifier()
+    clasificators['KNN'] = KNeighborsClassifier()
+    clasificators['Tree'] = DecisionTreeClassifier()
+    clasificators['NB'] = GaussianNB()
+    clasificators['SVM'] = SVC()
     
     print "Leyendo dataframe con reduccion de dimensionalidad..."
-    X = pickle.load(open('pickles/'+sys.argv[1]+'_X.pisckle','r'))
-    y = pickle.load(open('pickles/'+sys.argv[1]+'y.pickle','r'))
+    X = pickle.load(open('pickle/'+sys.argv[1]+'.pickle','r'))
+    y = pickle.load(open('pickle/y.pickle','r'))
 
     print "Leyendo la grilla de parametros..."
-    params = json.load(open('params/'+sys.argv[2]+'json','r'))
-    
+    params = json.load(open('params/'+sys.argv[2]+'.json','r'))
+    params = {k:map(lambda x: x if not(x == 'None') else None, v) for k,v in params.iteritems() }
+
     print "Ejecutando Grid Search..."
     grid = execute_classifier(clasificators[sys.argv[3]], X, y, params, n_jobs=-1, grid_search=True)
-    pickle.dump(grid,open('pickles/'+sys.argv[3],'wb'))
+    pickle.dump(grid,open('pickle/'+sys.argv[3],'wb'))

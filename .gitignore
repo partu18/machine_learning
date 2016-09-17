@@ -2,3 +2,4 @@ ml_venv
 .DS_STORE
 *.pyc
 trabajos_practicos/tp1/data/*
+trabajos_practicos/tp1/src/pickle/*
