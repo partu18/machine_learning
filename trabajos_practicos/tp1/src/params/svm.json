@@ -3,5 +3,4 @@
 	"kernel":["linear","poly","rbf","sigmoid","precomputed"],
 	"degree": [2,3],
 	"shrinkin": [true, false],
-	"n_jobs": [-1]
 }

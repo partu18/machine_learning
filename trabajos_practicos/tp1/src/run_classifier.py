@@ -28,7 +28,7 @@ from sklearn.grid_search import GridSearchCV
 # precision
 # recall
 # roc_auc
-def execute_classifier(classifier, X, target, params, n_jobs=1, folds=10, scoring='accuracy', grid_search=True, verbose=True): #definir scoring
+def execute_classifier(classifier, X, target, params, n_jobs=-1, folds=10, scoring='accuracy', grid_search=True, verbose=True): #definir scoring
     if grid_search:
         grid = GridSearchCV(classifier, params, cv=folds,n_jobs=n_jobs, scoring=scoring, verbose=verbose)
         grid.fit(X,target)
