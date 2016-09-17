@@ -52,6 +52,10 @@ if __name__ == '__main__':
 
     clasificators = dict()
     clasificators['RandomForestClassifier'] = RandomForestClassifier
+    clasificators['KNeighborsClassifier'] = KNeighborsClassifier
+    clasificators['DecisionTreeClassifier'] = DecisionTreeClassifier
+    clasificators['GaussianNB'] = GaussianNB
+    clasificators['SVC'] = SVC
     
     print "Leyendo dataframe con reduccion de dimensionalidad..."
     X = pickle.load(open('pickles/'+sys.argv[1]+'_X.pisckle','r'))
