@@ -75,4 +75,4 @@ if __name__ == '__main__':
 
     print "Ejecutando Grid Search..."
     grid = execute_classifier(clasificators[args.classifier], X, y, params, n_jobs=-1, grid_search=True)
-    pickle.dump(grid,open('pickle/{}'.format(args.classifier),'wb'))
+    pickle.dump(grid,open('pickle/{}.pickle'.format(args.classifier+'_'+args.dataset),'wb'))
