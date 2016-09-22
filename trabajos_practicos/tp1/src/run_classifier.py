@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import pickle
 import json
+import yaml
 from argparse import ArgumentParser
 
 # clasificators
@@ -10,10 +11,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import SVC
 
 from sklearn.cross_validation import cross_val_score
 from sklearn.grid_search import GridSearchCV
+from sklearn.cross_validation import train_test_split
 
 ## Posibles scores: http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 # accuracy
@@ -50,11 +53,11 @@ if __name__ == '__main__':
 
     parser.add_argument('-d',dest='dataset', help="Name of the dataset json file inside the pickles directory.")
     parser.add_argument('-p',dest='parameters', help="Name of the parameters json file inside the params directory.")
-    parser.add_argument('-c',dest='classifier', choices=['RandomForest','KNN','Tree','NB','SVM'], help="Name of the classifier to use.")
+    parser.add_argument('-c',dest='classifier', choices=['RandomForest','KNN','Tree','NB','SVM','MNB'], help="Name of the classifier to use.")
 
     args = parser.parse_args()
 
-    if not args.dataset or not args.parameters or not args.classifier:
+    if not args.classifier:
         parser.error("Missing parameters")
 
     clasificators = dict()
@@ -62,16 +65,40 @@ if __name__ == '__main__':
     clasificators['KNN'] = KNeighborsClassifier()
     clasificators['Tree'] = DecisionTreeClassifier()
     clasificators['NB'] = GaussianNB()
+    clasificators['MNB'] = MultinomialNB()
     clasificators['SVM'] = SVC()
     
     print "Leyendo dataframe con reduccion de dimensionalidad..."
     X = pickle.load(open('pickle/{}.pickle'.format(args.dataset),'r'))
     y = pickle.load(open('pickle/y.pickle','r'))
 
-    print "Leyendo la grilla de parametros..."
-    params = json.load(open('params/{}.json'.format(args.parameters),'r'))
-    params = {k:map(lambda x: x if not(x == 'None') else None, v) for k,v in params.iteritems() }
+    X = pd.DataFrame(X)
 
-    print "Ejecutando Grid Search..."
-    grid = execute_classifier(clasificators[args.classifier], X, y, params, n_jobs=-1, grid_search=True)
+#   X['class'] = y
+
+    #train, test = train_test_split(X, test_size=0.10, random_state=42) 
+    # y = train['class']
+    # fields = list(train.columns)
+    # fields.remove("class")
+    # X = train[fields]
+
+
+
+    print "Leyendo la grilla de parametros..."
+    params = yaml.safe_load(open('params/{}.json'.format(args.parameters),'r'))
+    params = {k:map(lambda x: x if not(x == 'None') else None, v) for k,v in params.iteritems() }
+    
+    # params = {}
+    # params['X_svd-antes'] = {"n_estimators": [50,100,150],"criterion": ["entropy"],"max_features":[80,90,100],"max_depth": [30, 35, 40,50],"warm_start": [True, False]}
+    # params['X_svd-despues'] = {"n_estimators": [50,100,150],"criterion": ["entropy"],"max_features":["sqrt",50,70,90],"max_depth": [60, 65, 70],"warm_start": [True, False]}
+    # params['X_pca-antes'] = {"n_estimators": [50,100,150],"criterion": ["entropy"],"max_features":[50,60,70],"max_depth": [20, 30, 40],"warm_start": [True, False]}
+
+    # for k,v in params.iteritems():
+    #     X = pickle.load(open('pickle/{}.pickle'.format(k),'r'))
+    #     print "Ejecutando Grid Search para ", k
+    #     grid = execute_classifier(clasificators[args.classifier], X, y, v, n_jobs=-1, grid_search=True)
+    #     pickle.dump(grid,open('pickle/{}.pickle'.format(args.classifier+'_'+k),'wb'))
+
+    print "Ejecutando Grid Search para ", args.dataset
+    grid = execute_classifier(clasificators[args.classifier], X, y, params, n_jobs=5, grid_search=True)
     pickle.dump(grid,open('pickle/{}.pickle'.format(args.classifier+'_'+args.dataset),'wb'))
