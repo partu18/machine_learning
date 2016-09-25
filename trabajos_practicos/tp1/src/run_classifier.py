@@ -73,16 +73,13 @@ if __name__ == '__main__':
     y = pickle.load(open('pickle/y.pickle','r'))
 
     X = pd.DataFrame(X)
+    X['class'] = y
 
-#   X['class'] = y
-
-    #train, test = train_test_split(X, test_size=0.10, random_state=42) 
-    # y = train['class']
-    # fields = list(train.columns)
-    # fields.remove("class")
-    # X = train[fields]
-
-
+    train, test = train_test_split(X, test_size=0.86, random_state=42) 
+    y = train['class']
+    fields = list(train.columns)
+    fields.remove("class")
+    X = train[fields]
 
     print "Leyendo la grilla de parametros..."
     params = yaml.safe_load(open('params/{}.json'.format(args.parameters),'r'))

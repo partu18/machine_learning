@@ -13,8 +13,8 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.grid_search import GridSearchCV
 
 # features
-import features/mime_headers_features
-import features/single_features
+import features.mime_headers_features as mime_headers_features
+import features.multiples_features as features
 
 # Text processing
 from inspect import getmembers, isfunction
