@@ -73,7 +73,7 @@ if __name__ == "__main__":
     helper = Helper()
 
     print "Leyendo jsons"
-    spam_emails, ham_emails = helper.get_parsed_emails()
+    spam_emails, ham_emails = helper.get_parsed_train_emails()
 
     print "Preprocesando spams"
     preprocessed_spams = preprocess(spam_emails)

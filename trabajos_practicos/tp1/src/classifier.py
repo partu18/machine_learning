@@ -18,7 +18,6 @@ def add_features(X,hams_features,spams_features):
     extracted_features = hams_features[0].keys()
     for extracted_feature in extracted_features:
         X[extracted_feature] = [mail[extracted_feature] for mail in (hams_features+spams_features)]
-        X[extracted_feature] = [mail[extracted_feature] for mail in (hams_features+spams_features)]
     return X
 
 if __name__ == '__main__':
