@@ -43,7 +43,7 @@ def features_extraction():
     helper = Helper()
 
     print "Leyendo jsons"
-    spam_emails, ham_emails = helper.get_parsed_emails()
+    spam_emails, ham_emails = helper.get_parsed_test_emails()
 
     print "Preprocesando spams"
     preprocessed_spams = preprocess(spam_emails)
