@@ -1,5 +1,6 @@
 # general imports
 from argparse import ArgumentParser
+import scipy.sparse.csr
 import pandas as pd
 import numpy as np
 import pickle
@@ -9,12 +10,19 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.decomposition import PCA
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import precision_score
 
 # Text processing
 from process_input import *
 
 def add_features(X,ham_features,spam_features):
-    X = pd.DataFrame(X.todense())
+    if not isinstance(X,pd.core.frame.DataFrame):
+        if isinstance(X,scipy.sparse.csr.csr_matrix):
+            X = pd.DataFrame(X.todense())
+        else:
+            X = pd.DataFrame(X)
     extracted_features = ham_features[0].keys()
     for extracted_feature in extracted_features:
         X[extracted_feature] = [mail[extracted_feature] for mail in (ham_features+spam_features)]
@@ -48,6 +56,8 @@ if __name__ == '__main__':
         X = add_features(X,ham_features,spam_features)
 
     print "reduciendo dimensionalidad..."
+    if isinstance(X,scipy.sparse.csr.csr_matrix):
+        X = pd.DataFrame(X.todense())
     X = decomposition.transform(X)
 
     if 'despues' in args.decomposition:
@@ -58,4 +68,5 @@ if __name__ == '__main__':
     y = ['ham' for _ in range(len(hams_text))]+['spam' for _ in range(len(spams_text))]
 
     prediction = classifier.predict(X)
-    print "accuracy: ", accuracy_score(y, prediction)
+    print "Classifier,decomposition,accuracy,recall,precision,average_precision,average,f1"
+    print ','.join(map(lambda x: str(x),[args.classifier,args.decomposition,accuracy_score(y,prediction),recall_score(y,prediction,labels=['ham','spam'],pos_label='spam'),precision_score(y,prediction,labels=['ham','spam'],pos_label='spam'),f1_score(y,prediction,labels=['ham','spam'],pos_label='spam')]))
