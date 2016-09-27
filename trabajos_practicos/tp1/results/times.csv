@@ -1,5 +1,5 @@
 classifier,decomposition,dataset_size,feature_amounts,prediction_time
-KNN,pca-antes,18000,100,4.994136
+KNN,pca-antes,18000,100,144.994136
 NB,pca-antes,18000,100,0.026047
 RandomForest,pca-antes,18000,100,0.234103
 Tree,pca-antes,18000,100,0.00492400000002
