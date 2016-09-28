@@ -32,9 +32,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print "Cargando pickles..."
-    vectorizer = pickle.load(open('tfidf_train.pickle','rb'))
-    decomposition = pickle.load(open('pca-antes','rb'))
-    classifier = pickle.load(open('RandomForest_X_pca-antes','rb'))
+    vectorizer = pickle.load(open('pickle/tfidf_train.pickle','rb'))
+    decomposition = pickle.load(open('pickle/pca-antes.pickle','rb'))
+    classifier = pickle.load(open('pickle/RandomForest_X_pca-antes.pickle','rb'))
 
     "Procesando emails"
     emails_features, emails_text = features_extraction(args.filename)
