@@ -9,7 +9,7 @@ def text_to_content_type(txt):
 
 def get_email_info_structure(email):
     msg = email_parser.message_from_string(email.encode('ascii','ignore'))
-    try: #FIXME O INFIERNO
+    try:
     	txt = msg.as_string()
     except:
     	txt = ''

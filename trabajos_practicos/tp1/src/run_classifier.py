@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 import pickle
-import json
 import yaml
 from argparse import ArgumentParser
 
@@ -85,17 +84,6 @@ if __name__ == '__main__':
     params = yaml.safe_load(open('params/{}.json'.format(args.parameters),'r'))
     params = {k:map(lambda x: x if not(x == 'None') else None, v) for k,v in params.iteritems() }
     
-    # params = {}
-    # params['X_svd-antes'] = {"n_estimators": [50,100,150],"criterion": ["entropy"],"max_features":[80,90,100],"max_depth": [30, 35, 40,50],"warm_start": [True, False]}
-    # params['X_svd-despues'] = {"n_estimators": [50,100,150],"criterion": ["entropy"],"max_features":["sqrt",50,70,90],"max_depth": [60, 65, 70],"warm_start": [True, False]}
-    # params['X_pca-antes'] = {"n_estimators": [50,100,150],"criterion": ["entropy"],"max_features":[50,60,70],"max_depth": [20, 30, 40],"warm_start": [True, False]}
-
-    # for k,v in params.iteritems():
-    #     X = pickle.load(open('pickle/{}.pickle'.format(k),'r'))
-    #     print "Ejecutando Grid Search para ", k
-    #     grid = execute_classifier(clasificators[args.classifier], X, y, v, n_jobs=-1, grid_search=True)
-    #     pickle.dump(grid,open('pickle/{}.pickle'.format(args.classifier+'_'+k),'wb'))
-
     print "Ejecutando Grid Search para ", args.dataset
     grid = execute_classifier(clasificators[args.classifier], X, y, params, n_jobs=5, grid_search=True)
     pickle.dump(grid,open('pickle/{}.pickle'.format(args.classifier+'_'+args.dataset),'wb'))

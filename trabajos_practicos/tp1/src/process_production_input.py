@@ -30,33 +30,24 @@ def process_email(email):
 def clean_string(self, string):
         return string.replace("\r","").replace("\n","").replace("\t","  ").strip()
 
-def get_parsed_emails(spam_filename, ham_filename):
-    with open(spam_filename,'r') as f:
-        spam_json = f.read()
+def get_parsed_emails(filename):
+    with open(filename,'r') as f:
+        emails_json = f.read()
+    return json.loads(clean_string(emails_json))
 
-    with open(ham_filename,'r') as f:
-        ham_json = f.read()
 
-    return json.loads(clean_string(spam_json)), json.loads(clean_string(ham_json))
+def features_extraction(filename):
 
-def features_extraction(spam_filename, ham_filename):
-
-    print "Leyendo jsons"
-    spam_emails, ham_emails = get_parsed_emails(spam_filename, ham_filename)
+    print "Leyendo json"
+    emails = get_parsed_emails(filename)
 
     print "Preprocesando spams"
-    preprocessed_spams = preprocess(spam_emails)
-    print "Preprocesando hams"
-    preprocessed_hams = preprocess(ham_emails)
+    preprocessed_emails = preprocess(emails)
 
     print "Extrayendo features de spam"
-    processed_spams = [process_email(mail) for mail in preprocessed_spams] # Multiprocessing?
-    print "Extrayendo features de ham"
-    processed_hams = [process_email(mail) for mail in preprocessed_hams] # Multiprocessing?
+    processed_emails = [process_email(mail) for mail in preprocessed_emails] # Multiprocessing?
 
     print "Extrayendo textos para ngrams de spam"
-    text_hams = [email[EMAIL_TEXT] for email in preprocessed_hams]
-    print "Extrayendo textos para ngrams de ham"
-    text_spams = [email[EMAIL_TEXT] for email in preprocessed_spams]
+    emails_text = [email[EMAIL_TEXT] for email in processed_emails]
 
-    return processed_hams, processed_spams, text_hams, text_spams
+    return processed_emails, emails_text
