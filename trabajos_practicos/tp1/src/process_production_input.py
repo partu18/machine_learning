@@ -27,7 +27,7 @@ def process_email(email):
 
     return final_features
 
-def clean_string(self, string):
+def clean_string(string):
         return string.replace("\r","").replace("\n","").replace("\t","  ").strip()
 
 def get_parsed_emails(filename):
@@ -41,13 +41,13 @@ def features_extraction(filename):
     print "Leyendo json"
     emails = get_parsed_emails(filename)
 
-    print "Preprocesando spams"
+    print "Preprocesando text"
     preprocessed_emails = preprocess(emails)
 
     print "Extrayendo features de spam"
     processed_emails = [process_email(mail) for mail in preprocessed_emails] # Multiprocessing?
 
     print "Extrayendo textos para ngrams de spam"
-    emails_text = [email[EMAIL_TEXT] for email in processed_emails]
+    emails_text = [email[EMAIL_TEXT] for email in preprocessed_emails]
 
     return processed_emails, emails_text

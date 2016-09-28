@@ -52,6 +52,9 @@ if __name__ == '__main__':
 
     print prediction
 
+    res = pd.DataFrame(prediction)
+    res.to_csv(open('resultado.csv','wb'))
+
 
 
 
