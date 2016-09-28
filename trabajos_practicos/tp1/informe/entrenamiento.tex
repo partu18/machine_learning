@@ -1,0 +1,62 @@
+Para ambas técnicas de reducción, tomamos la decisión de reducir las features a 100. Ahora, cabe la siguiente pregunta: ¿Qué sería mejor? ¿Aplicar la técnica de reducción de dimensionalidad sobre la totalidad de features (n-gramas + features del dominio + header MIME) o sólo sobre el feature sobre el cuál no tenemos suficiente información como para decidir su relevancia (n-gramas)?. Es por esto que a la hora de realizar el entrenamiento de los diferentes clasificadores, realizamos el mismo con las 4 posibilidades:
+\begin{itemize}
+    \item PCA sobre la totalidad de features, referido en las Figuras \ref{figure:precision}, \ref{figure:accuracy} y \ref{figure:time} como pca-antes.
+    \item PCA sólo sobre n-gramas y agregando luego las features que nosotros, conocedores del dominio, determinamos que son relevantes, referido en las Figuras \ref{figure:precision}, \ref{figure:accuracy} y \ref{figure:time} como pca-despues.
+    \item SVD sobre la totalidad de features. referido en las Figuras \ref{figure:precision}, \ref{figure:accuracy} y \ref{figure:time} como svd-antes.
+    \item SVD sólo sobre n-gramas y agregando luego nuestras features. referido en las Figuras \ref{figure:precision}, \ref{figure:accuracy} y \ref{figure:time} como svd-despues.
+\end{itemize}
+
+Esto además tiene la ventaja de que es posible que para diferentes clasificadores convenga utilizar diferente conjunto de features, pues si bien PCA y SVD son similares, su objetivo es ligeramente diferente. PCA busca maximizar la varianza, mientras que SVD busca maximizar la independencia entre las variables. De esta forma una de las hipótesis es, por ejemplo, que para Naive Bayes SVD va a ser mejor que PCA, ya que favorece a la asunción realizada de que las variables son independientes.
+Algo que nos parece pudimos haber hecho mejor, es que sin darnos cuenta en un principio para probar fijamos la medida de performance en accuracy, y notamos esto bastante cerca de finalizado el entrenamiento con casi todos los clasificadores. A pesar de que al estar bien distribuida la muestra en cuanto a elementos en la clase SPAM y elementos en la clase HAM \textit{accuracy} es un buen indicador, utilizar como medida de \textit{performance} la precisión hubiera sido, contradictoriamente, más ``accurate´´ ya que en detección de spams toma relevancia no clasificar como SPAM un email que es HAM (falso positivo). Para ver cuanto nos cuesta este error, al eveluar los clasificadores con el set de test, vamos a tomar no solo la accuracy, sino también la precisión (sección resultados), y de esta forma poder aprender cuan bien o mal puede salir el elegir mal la medida de performance.
+
+Para optimizar los distintos clasificadores, utilizamos la técnica de \textit{grid-search} con \textit{cross-validation} de 10 folds. En el caso de Random Forest, nos pareció lógico que para optimizar el espacio a recorrer, los árboles con los que poblamos al bosque eran cercanos al óptimo obtenido con árboles de decisión. Es decir, la búsqueda más exhaustiva la realizamos con \textit{grid-search} con árboles de decisión, a partir del arbol obtenido, nos movimos cerca de ese espacio al realizar el \textit{grid-search} sobre el bosque.
+\\
+
+Estos fueron los hiperparámetros probados con cada clasificador: \\
+
+\medskip
+
+\textbf{KNN:}
+\begin{itemize}
+	\item n\_neighbors: 1, 5, 10
+	\item weights: 'uniform', 'distance'
+	\item algorithm: 'ball\_tree', 'kd\_tree'
+	\item p: 1,2
+\end{itemize}
+
+\smallskip
+
+\textbf{Random Forest:}
+\begin{itemize}
+	\item n\_estimators: 50,100,150,200
+	\item max\_features: 'sqrt', 50, 60, 70, 90
+	\item criterion: 'entropy'
+	\item warm\_start: true, false
+	\item max\_depth: 20, 30, 40, 60, 65, 70, 80, 85, 90, 95
+\end{itemize}
+
+\smallskip
+
+\textbf{SVM:}
+\begin{itemize}
+	\item kernel: 'linear'
+	\item C: 0.3
+\end{itemize}
+
+\smallskip
+
+\textbf{Tree:}
+\begin{itemize}
+	\item max\_features: 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100
+	\item random\_state: 1
+ 	\item criterion: 'entropy'
+ 	\item max\_depth: 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100
+\end{itemize}
+
+\smallskip
+
+
+\textbf{Naive Bayes:} 
+No posee hiperparámetros. \\
+
+A continuación veremos los resultados obtenidos como fruto de estos métodos de entrenamiento.

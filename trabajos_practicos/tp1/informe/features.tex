@@ -1,0 +1,46 @@
+El primer desafío consistió en encontrar una forma de tratar adecuadamente los datos. Para perder el mínimo de información posible del formato de origen, ya que los emails se encontraban en formato MIME,se utilizó la libreria email \cite{pythonemail} de Python, que permite parsear el formato en texto plano y obtener así las diferentes multipartes y headers del email, entre otras cosas.
+Teniendo una estructura que facilite el acceso a los diferentes contenidos del email, lo siguiente fue analizar los datos y tratar de encontrar características que permitan distinguir ambas clases.
+Lo primero que notamos fue la fuerte presencia de HTML en los emails de tipo SPAM, siendo cerca del 80\%. Si bien esta característica nos era evidentemente relevante, esto no era suficiente, pues habia HAMs que también tenian HTML. En ese momento, nos volcamos hacia lo que para nosotros, los humanos, es más evidente para detectar SPAM; el texto. Ahora esto nos representaba un nuevo desafío: como mencionamos antes, la gran mayoría de los SPAMs solo tenía HTML, y eran muy pocos los SPAMs que poseían directamente el texto plano en el email en lugar de tenerlo embebido dentro del HMTL. Para resolver esto, utilizamos la libreria HTMLParser \cite{htmlparser} que permite parsear el contenido, y obtener el texto que se halla dentro de la etiqueta <body> del HTML de cada email.
+De esta forma, cada email fue transformado y reducido a la siguiente información a analizar:
+\begin{itemize}
+    \item Texto: tanto el texto identificado dentro del tipo text/plain de MIME, como el texto dentro de la etiqueta body si posee HTML.
+    \item Headers MIME
+    \item Contenido discriminado por sección de MIME: un diccionario discriminando la información dentro de cada multiparte del email
+\end{itemize}
+
+Una vez reducida y tratada la información inicial, nos concentramos en la búsqueda de features. A continuación detallamos a grandes rasgos, cuales son las mismas.
+
+
+\subsubsection*{Features del dominio}
+Este grupo de features fueron los primeros que identificamos. Son producto tanto del análisis de los emails, como de un conocimiento previo y general del dominio. En este grupo encontramos features tales como: 
+\begin{itemize}
+    \item Content Types (audios, gifs, código HTML, etc)
+    \item Longitud del texto
+    \item Cantidad de apariciones de símbolos específicos ("=", "*", " ")
+    \item Prensencia del prefijo "RE:" en el asunto del email
+    \item Más de un destinatario
+    \item Entre otros...
+\end{itemize}
+
+
+\subsubsection*{MIME headers}
+El siguiente grupo de features, corresponde a los headers del protocolo MIME. No sólo hay que tener en cuenta el contenido de los correos, si no también los metadatos o datos de control utilizados para la transmisión de los mismos. 
+En este caso, el protocolo implementado por la inmensa mayoría de los servidores de correo con el fin de formatear los emails de forma standard es se puede encontrar en \cite{mimestandar}.
+Dado que muchas veces este tipo de información no la controla el usuario que envía el correo, se pudo hacer un estudio profundo y satisfactorio de qué headers están presentes con mayor frencuencia en correos de tipo SPAM.
+Con el fin de seleccionar específicamente qué headers iban a ser utilizados, utilizamos los siguientes criterios:
+\begin{itemize}
+    \item Headers presentes únicamente en uno de las dos clases.
+    \item Headers presentes en ambas clases, pero con una amplía diferencia de un lado más que de otro. 
+\end{itemize}
+\textit{Se tuvo en cuenta además, un límite de cantidad de apariciones mínimas}
+
+\subsubsection*{N-Gramas}
+Un n-grama es una subsecuencia de tamaño n de una secuencia dada. En el caso de tratarse de una oración, y un 2-grama, nos estariamos refiriendo a todos los pares de palabras secuenciales que aparecen en ella.
+De esta forma, basados en que la forma de escribir y las frases mas comunes de SPAM difirieren sustancialmente de las que se suelen encontrar a un HAM, analizamos la frecuencia de los distintos n-gramas en cada clase.
+El lector perspicaz puede estar preguntándose cómo esto es relevante, cuando puedo escribir una misma frase de formas distintas, o en diferentes tiempos verbales. Es por esto que en procesamiento de texto se suele pre-procesar el mismo utilizando lo que se conoce como Lematización, o alternativamente aunque es ligeramente distinto, Stemming. La diferencia entre ambos métodos es que al lematizar, la raiz encontrada termina siendo una palabra válida en si misma, mientras que al realizar stemming, la raiz no necesariamente lo es. Inicialmente utilizamos lematización, pero luego por cuestiones de performance nos volcamos hacia stemming. Es por esto que, previo a la extracción de n-gramas, los textos de los mails son pre-procesados realizando un stemming de los mismos. Asimismo, es necesario deshacerse de las llamadas stopwords; es decir, preposiciones o palabras que no aportan significado al texto.
+Nuestro primer approach fue combinar 1-2-3-4-5-7-10 gramas con el concepto de Inverse Document Frequency (a.k.a IDF), que da una noción de cuan relevamente es un término para una colección de documentos dada. De esta manera, obtendríamos para cada n-grama, su relevancia en el conjunto de SPAM y de HAM. Un termino relevante sería aquel que posea un bajo IDF en SPAM y un alto IDF en HAM o viceversa.
+De esta manera, obtuvimos un ranking de los n-gramas que cumplian esta condición y fueron agregados al conjunto de features.
+Luego de extraer estos datos y probarlos con un clasificador de tipo arbol de decisión, notamos que el exceso de datos (diferentes n-gramas) comparado con una corrida con solo unigramas no solo perjudicaba sustancialmente al tiempo de corrida, sino que en algunos casos, también a la performance del mismo.
+Para poder ver la eficacia de estos features, realizamos una corrida de clasificación utilizando sólo n-gramas, y observamos que la performance del clasificador era extramadamente baja, alrededor del 60\% de \textit{accuracy}.
+Es por esto que para omitir la inserción de errores, en lugar de utilizar la noción de IDF, utilizamos la noción de Term Frequency - Inverse Document Frequency (Tf- IDF), en donde se especifica la relavancia de un término para cada documento dentro de una colección. Para esto utilizamos la implementación proveída por la libreria scikit-learn tf-idf \cite{tfidf}, obteniendo el top 5000 de Tf-IDF para 1, 2 y 3-gramas sin mirar las clases SPAM y HAM de los emails.
+Una vez hecho esto, nos dedicamos a reducir estas 5000 features para quedarnos solo con las más significativas. Para esto utilizamos dos técnicas, Principal Component Analysis (PCA) y Singular Value Decomposition. En la próxima sección detallamos cómo utilizamos estas técnicas para generar 4 transformaciones de datos diferentes.
